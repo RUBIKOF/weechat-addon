@@ -10,12 +10,13 @@ CONFIG=$(</data/options.json)
 RELAY_PORT=$(echo "$CONFIG" | jq -r '.relay_port')
 RELAY_PASSWORD=$(echo "$CONFIG" | jq -r '.relay_password')
 
+# 2. Configuración inicial y Relay Setup
 # Exportar TERM es crucial para evitar el error 'ncurses: cannot initialize terminal type'
 export TERM=xterm
 
-# 2. Ejecutar WeeChat en background para crear los archivos de configuración iniciales
+# Ejecutar WeeChat en background (-d) para crear los archivos de configuración
+# Usamos -q (quit) y -n (no-connect)
 echo "Creando archivos de configuración iniciales de WeeChat..."
-# Usamos -q (quit) y -n (no-connect) solo para la fase de creación de archivos.
 weechat -d "$WEECHAT_HOME" -q -n &
 WEECHAT_PID=$!
 sleep 5
@@ -25,7 +26,7 @@ if kill -0 "$WEECHAT_PID" 2>/dev/null; then
     kill "$WEECHAT_PID"
 fi
 
-# 3. Configurar el Relay de WeeChat usando el modo rooter (-r)
+# 3. Configurar el Relay de WeeChat (usando modo rooter -r)
 echo "Configurando WeeChat Relay en puerto $RELAY_PORT..."
 
 # Enviar comandos de configuración
@@ -38,10 +39,8 @@ weechat -d "$WEECHAT_HOME" -r "relay add weechat $RELAY_PORT"
 echo "✅ Relay configurado."
 
 # 4. Ejecución Final de WeeChat como Daemon
+# Ejecutamos WeeChat en background (-d) para que el servicio se quede activo
 echo "Iniciando WeeChat en segundo plano..."
-# Forzamos la carga del plugin relay justo antes de iniciar el daemon final (Solución para puertos cerrados)
-weechat -d "$WEECHAT_HOME" -r "plugin load relay"
-# Iniciamos el daemon final.
 weechat -d "$WEECHAT_HOME"
 
 # 5. Mantener el contenedor en ejecución (CRUCIAL)
