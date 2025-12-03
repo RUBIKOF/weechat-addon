@@ -1,10 +1,21 @@
-#!/bin/sh
-set -e
+#!/usr/bin/env bash
 
-# Configura el relay con la contraseña del addon
-PASSWORD=$(echo -n "${PASSWORD}" | sed 's/[\/&]/\\&/g')
-sed -i "s/\/set relay.network.password.*/\/set relay.network.password ${PASSWORD}/g" /home/weechat/.weechat/relay.conf
+# Lee la configuración pasada por Home Assistant
+CONFIG=$(</data/options.json)
+HOST=$(echo "$CONFIG" | jq -r '.weechat_host')
+PORT=$(echo "$CONFIG" | jq -r '.weechat_port')
+PASSWORD=$(echo "$CONFIG" | jq -r '.weechat_password')
 
-# Inicia WeeChat en modo headless con relay
-exec weechat --dir /home/weechat/.weechat --daemon \
-    --run "/set relay.network.bind_address '0.0.0.0'; /relay add weechat 9001;"
+# --- Lógica de WeeChat o Bridge ---
+
+# Si el objetivo es ejecutar el propio WeeChat dentro del addon:
+# Necesitarías asegurarte de que WeeChat esté instalado en la imagen Docker base.
+# Luego, iniciarlo en modo daemon o con el relay activado.
+# weechat -r $HOST:$PORT --password $PASSWORD
+
+# Si el objetivo es usar un script Python para interactuar con el WeeChat Relay:
+# El script Python (ej. weechat_bridge.py) se encargaría de la comunicación.
+python3 /app/weechat_bridge.py --host "$HOST" --port "$PORT" --password "$PASSWORD"
+
+# Mantener el contenedor en ejecución para que HA no lo detenga
+tail -f /dev/null
