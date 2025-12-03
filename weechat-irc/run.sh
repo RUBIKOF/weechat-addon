@@ -1,57 +1,48 @@
 #!/usr/bin/env sh
 
-set -e
-
 WEECHAT_HOME="/root/.weechat"
-RELAY_CONF="$WEECHAT_HOME/relay.conf"
 
-echo "Iniciando configuración de WeeChat IRC Server..."
+echo "==== WeeChat IRC Server - init ===="
 
-# Leer opciones del addon
+# 1. Ver /data/options.json
 if [ ! -f /data/options.json ]; then
-  echo "ERROR: /data/options.json no existe. ¿Se instaló bien el addon?"
-  exit 1
+  echo "ERROR: /data/options.json no existe"
+  ls -R /data || true
 fi
 
-CONFIG=$(</data/options.json)
-RELAY_PORT=$(echo "$CONFIG" | jq -r '.relay_port')
-RELAY_PASSWORD=$(echo "$CONFIG" | jq -r '.relay_password')
+echo "Contenido de /data/options.json:"
+cat /data/options.json || true
+echo "=============================="
 
-export TERM=xterm
+# 2. Leer opciones con jq (probamos raíz y .options.*)
+CONFIG=$(cat /data/options.json 2>/dev/null || echo '{}')
 
-echo "Usando puerto de relay: $RELAY_PORT"
-echo "Usando password de relay: $RELAY_PASSWORD"
+RELAY_PORT=$(echo "$CONFIG" | jq -r '.relay_port // .options.relay_port // 8000')
+RELAY_PASSWORD=$(echo "$CONFIG" | jq -r '.relay_password // .options.relay_password // "hassio"')
 
-# Asegurar que exista el directorio
+echo "Puerto configurado: $RELAY_PORT"
+echo "Password configurado: $RELAY_PASSWORD"
+
 mkdir -p "$WEECHAT_HOME"
 
-echo "Generando relay.conf en $RELAY_CONF ..."
+# 3. Primer arranque para generar estructura de config
+echo "Primer arranque rápido para generar configuración base..."
+weechat -d "$WEECHAT_HOME" -r "/quit" >/dev/null 2>&1 || true
 
-cat > "$RELAY_CONF" <<EOF
-#
-# WeeChat relay configuration file (generado por addon de HA)
-#
+# 4. Configurar relay desde WeeChat
+echo "Configurando plugin relay..."
+weechat -d "$WEECHAT_HOME" -r "
+/plugin load relay;
+/set relay.network.password \"$RELAY_PASSWORD\";
+/set relay.network.bind_address \"0.0.0.0\";
+/set relay.network.ipv6 off;
+/relay del weechat;
+/relay add weechat $RELAY_PORT;
+/save;
+/quit;
+" >/dev/null 2>&1 || true
 
-[network]
-port = $RELAY_PORT
-password = "$RELAY_PASSWORD"
-ipv6 = off
-bind_address = "0.0.0.0"
-max_clients = 5
-ssl_cert_key = ""
-compression = 0
-allowed_ips = ""
-EOF
+echo "Configuración de relay terminada. Arrancando WeeChat..."
 
-echo "Contenido actual de relay.conf:"
-echo "--------------------------------"
-cat "$RELAY_CONF"
-echo "--------------------------------"
-
-echo "Iniciando WeeChat en modo daemon..."
-weechat --daemon -d "$WEECHAT_HOME"
-
-echo "WeeChat debería estar escuchando en puerto $RELAY_PORT (0.0.0.0:$RELAY_PORT)"
-
-# Mantener contenedor vivo
-tail -f /dev/null
+# 5. Arrancar WeeChat como proceso principal del contenedor
+exec weechat -d "$WEECHAT_HOME"
