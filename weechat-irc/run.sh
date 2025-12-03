@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
 
-# Salir si algo revienta
+# Salir si algo falla
 set -e
 
-# Truco para ncurses
+# Para que ncurses no llore en los comandos de config
 export TERM=xterm
 
 WEECHAT_HOME="/root/.weechat"
@@ -35,7 +35,7 @@ mkdir -p "$WEECHAT_HOME"
 echo "Primer arranque rápido para generar configuración base..."
 weechat -d "$WEECHAT_HOME" -r "/quit" || true
 
-# 4. Construir comando para configurar relay (en una sola línea)
+# 4. Construir comando para configurar relay (una sola línea)
 CMD="/plugin load relay;\
 /set relay.network.password \"$RELAY_PASSWORD\";\
 /set relay.network.bind_address \"0.0.0.0\";\
@@ -49,7 +49,7 @@ CMD="/plugin load relay;\
 echo "Ejecutando comandos de configuración en WeeChat:"
 echo "$CMD"
 
-# 5. Ejecutar el comando y NO ocultar la salida, para ver qué pasa
+# 5. Ejecutar comando de configuración (veremos la salida en logs)
 weechat -d "$WEECHAT_HOME" -r "$CMD"
 
 echo "Contenido de $WEECHAT_HOME/relay.conf (si existe):"
@@ -61,7 +61,12 @@ else
   echo "relay.conf NO existe"
 fi
 
-echo "Configuración de relay terminada. Arrancando WeeChat..."
+echo "Configuración de relay terminada. Arrancando WeeChat en modo daemon..."
 
-# 6. Arrancar WeeChat como proceso principal del contenedor
-exec weechat -d "$WEECHAT_HOME"
+# 6. Ahora sí: WeeChat como servicio (sin interfaz), que se quede vivo
+weechat --daemon -d "$WEECHAT_HOME"
+
+echo "WeeChat daemon iniciado. Relay debería estar escuchando en 0.0.0.0:$RELAY_PORT"
+
+# 7. Mantener el contenedor vivo para que el addon no se pare
+tail -f /dev/null
