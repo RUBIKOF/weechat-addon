@@ -1,0 +1,14 @@
+# repository.yaml
+name: "WeeChat IRC Addon Repository"
+maintainer: "Tu Nombre o Usuario de GitHub"
+addons:
+  - name: "WeeChat IRC Server"
+    slug: "weechat_irc_server"
+    description: "WeeChat IRC server for HA"
+    arch:
+      - aarch64
+      - amd64
+      - armv7
+    url: "https://github.com/RUBIKOF/weechat-addon"
+    version: "0.1.0"
+    target: "weechat_irc" # <--- IMPORTANTE: Nombre de la subcarpeta
