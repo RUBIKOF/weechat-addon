@@ -1,27 +1,20 @@
-# Usa una imagen base robusta con paquetes (ej. Alpine Linux)
-FROM ghcr.io/home-assistant/base-aarch64:stable 
+# Usamos una imagen base pública y ligera de Alpine para evitar el error 403
+FROM alpine:latest
 
-# O si tu Home Assistant no es aarch64, ajusta la arquitectura (amd64, armv7)
-# FROM ghcr.io/home-assistant/base-amd64:stable
-
-# Instala 'jq' para parsear JSON y 'weechat'
-# Usamos 'apk' si la base es Alpine, o 'apt' si es Debian-based. La imagen base de HA usa Alpine.
+# Instala las dependencias necesarias: jq para parsear JSON, weechat, y dependencias para Python
 RUN apk update && \
-    apk add --no-cache jq weechat && \
+    apk add --no-cache jq weechat python3 py3-pip && \
     rm -rf /var/cache/apk/*
 
 # Copia el script de ejecución
 COPY run.sh /
-# Copia la configuración (si tienes alguna inicial)
-# COPY files/weechat.conf /root/.weechat/weechat.conf
-
 # Crea la carpeta de configuración para WeeChat
 RUN mkdir -p /root/.weechat
 
 # Asegúrate de que el script de ejecución sea ejecutable
 RUN chmod a+x /run.sh
 
-# El addon expondrá este puerto para la conexión del relay
+# El addon expondrá este puerto (pero es el 'ports' en config.json el que importa)
 EXPOSE 8000
 
 # Define el punto de entrada del addon
