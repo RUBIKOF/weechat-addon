@@ -1,8 +1,9 @@
 #!/usr/bin/env sh
 
+# Salir si algo revienta
 set -e
 
-# 💡 Truco clave: darle un terminal válido a ncurses
+# Truco para ncurses
 export TERM=xterm
 
 WEECHAT_HOME="/root/.weechat"
@@ -19,7 +20,7 @@ echo "Contenido de /data/options.json:"
 cat /data/options.json || true
 echo "=============================="
 
-# 2. Leer opciones con jq (probamos raíz y .options.*)
+# 2. Leer opciones con jq (raíz y .options.* por compatibilidad)
 CONFIG=$(cat /data/options.json 2>/dev/null || echo '{}')
 
 RELAY_PORT=$(echo "$CONFIG" | jq -r '.relay_port // .options.relay_port // 8000')
@@ -32,22 +33,35 @@ mkdir -p "$WEECHAT_HOME"
 
 # 3. Primer arranque para generar estructura de config
 echo "Primer arranque rápido para generar configuración base..."
-weechat -d "$WEECHAT_HOME" -r "/quit" >/dev/null 2>&1 || true
+weechat -d "$WEECHAT_HOME" -r "/quit" || true
 
-# 4. Configurar relay desde WeeChat
-echo "Configurando plugin relay..."
-weechat -d "$WEECHAT_HOME" -r "
-/plugin load relay;
-/set relay.network.password \"$RELAY_PASSWORD\";
-/set relay.network.bind_address \"0.0.0.0\";
-/set relay.network.ipv6 off;
-/relay del weechat;
-/relay add weechat $RELAY_PORT;
-/save;
-/quit;
-" >/dev/null 2>&1 || true
+# 4. Construir comando para configurar relay (en una sola línea)
+CMD="/plugin load relay;\
+/set relay.network.password \"$RELAY_PASSWORD\";\
+/set relay.network.bind_address \"0.0.0.0\";\
+/set relay.network.ipv6 off;\
+/relay del weechat;\
+/relay add weechat $RELAY_PORT;\
+/relay list;\
+/save;\
+/quit"
+
+echo "Ejecutando comandos de configuración en WeeChat:"
+echo "$CMD"
+
+# 5. Ejecutar el comando y NO ocultar la salida, para ver qué pasa
+weechat -d "$WEECHAT_HOME" -r "$CMD"
+
+echo "Contenido de $WEECHAT_HOME/relay.conf (si existe):"
+if [ -f "$WEECHAT_HOME/relay.conf" ]; then
+  echo "--------------------------------"
+  cat "$WEECHAT_HOME/relay.conf"
+  echo "--------------------------------"
+else
+  echo "relay.conf NO existe"
+fi
 
 echo "Configuración de relay terminada. Arrancando WeeChat..."
 
-# 5. Arrancar WeeChat como proceso principal del contenedor
+# 6. Arrancar WeeChat como proceso principal del contenedor
 exec weechat -d "$WEECHAT_HOME"
