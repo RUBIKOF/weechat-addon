@@ -1,21 +1,19 @@
 FROM alpine:latest
 
-# Instala dependencias: jq, WeeChat y Python
+# Instala las dependencias necesarias (jq para JSON, weechat, y python)
 RUN apk update && \
-    apk add --no-cache \
-        jq \
-        weechat \
-        python3 \
-        py3-pip && \
+    apk add --no-cache jq weechat python3 py3-pip && \
     rm -rf /var/cache/apk/*
 
-# Copia script
+# Copia el script de ejecución
 COPY run.sh /
+# Crea la carpeta de configuración para WeeChat
+RUN mkdir -p /root/.weechat
 
-# Crea carpeta de config y da permisos
-RUN mkdir -p /root/.weechat && \
-    chmod a+x /run.sh
+# Asegúrate de que el script de ejecución sea ejecutable
+RUN chmod a+x /run.sh
 
 EXPOSE 8000
 
-CMD ["/run.sh"]
+# Define el punto de entrada del addon
+CMD [ "/run.sh" ]
