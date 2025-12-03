@@ -1,47 +1,68 @@
 #!/usr/bin/env sh
 
-# Directorio de configuración de WeeChat
+# Importante: NO usamos "set -e" para que el contenedor no muera si algo falla
+
+export TERM=xterm
 WEECHAT_HOME="/root/.weechat"
 
-echo "Iniciando configuración de WeeChat IRC Server..."
+echo "==== WeeChat IRC Server - init ===="
 
-# 1. CORRECCIÓN: Lee la configuración del Addon directamente desde el archivo usando jq
-RELAY_PORT=$(jq -r '.relay_port' /data/options.json)
-RELAY_PASSWORD=$(jq -r '.relay_password' /data/options.json)
-
-# Verificación crucial en el log:
-echo "Configurando WeeChat Relay en puerto $RELAY_PORT..."
-
-# Exportar TERM es crucial
-export TERM=xterm
-
-# 2. Ejecutar WeeChat en background para crear los archivos de configuración
-echo "Creando archivos de configuración iniciales de WeeChat..."
-weechat -d "$WEECHAT_HOME" -q -n &
-WEECHAT_PID=$!
-sleep 5
-
-if kill -0 "$WEECHAT_PID" 2>/dev/null; then
-    kill "$WEECHAT_PID"
+# 1. Leer opciones del addon
+if [ ! -f /data/options.json ]; then
+  echo "ERROR: /data/options.json no existe"
+  ls -R /data || true
 fi
 
-# 3. Configurar el Relay de WeeChat (usando modo rooter -r)
-# ELIMINAR CUALQUIER RELAY EXISTENTE
-weechat -d "$WEECHAT_HOME" -r "relay del weechat"
+echo "Contenido de /data/options.json:"
+cat /data/options.json || true
+echo "=============================="
 
-# ESTABLECER LA CONTRASEÑA Y OPCIONES
-weechat -d "$WEECHAT_HOME" -r "set relay.network.password \"$RELAY_PASSWORD\""
-weechat -d "$WEECHAT_HOME" -r "set relay.network.client_state \"disabled\""
-weechat -d "$WEECHAT_HOME" -r "set relay.network.ipv6 \"off\""
+CONFIG=$(cat /data/options.json 2>/dev/null || echo '{}')
 
-# AGREGAR EL SERVICIO RELAY CON EL PUERTO LEÍDO
-weechat -d "$WEECHAT_HOME" -r "relay add weechat $RELAY_PORT"
-echo "✅ Relay configurado."
+RELAY_PORT=$(echo "$CONFIG" | jq -r '.relay_port // .options.relay_port // 8000')
+RELAY_PASSWORD=$(echo "$CONFIG" | jq -r '.relay_password // .options.relay_password // "hassio"')
 
-# 4. Ejecución Final de WeeChat como Daemon
-echo "Iniciando WeeChat en segundo plano..."
-weechat -d "$WEECHAT_HOME"
+echo "Puerto configurado: $RELAY_PORT"
+echo "Password configurado: $RELAY_PASSWORD"
 
-# 5. Mantener el contenedor en ejecución (CRUCIAL)
-echo "El addon está funcionando. Revisar logs para verificar la conexión del relay."
+# 2. Asegurar carpeta
+mkdir -p "$WEECHAT_HOME"
+
+# 3. Primer arranque rápido para crear estructura
+echo "Primer arranque rápido para generar configuración base..."
+weechat -d "$WEECHAT_HOME" -r "/quit" >/dev/null 2>&1 || echo "Primer arranque salió con código $?"
+
+# 4. Configurar relay en una sola llamada
+CMD="/plugin load relay;\
+/set relay.network.password \"$RELAY_PASSWORD\";\
+/set relay.network.bind_address \"0.0.0.0\";\
+/set relay.network.ipv6 off;\
+/relay del weechat;\
+/relay add weechat $RELAY_PORT;\
+/relay list;\
+/save;\
+/quit"
+
+echo "Ejecutando comandos de configuración en WeeChat:"
+echo "$CMD"
+
+weechat -d "$WEECHAT_HOME" -r "$CMD" >/dev/null 2>&1 || echo "Configuración de relay devolvió código $?"
+
+echo "Contenido de $WEECHAT_HOME/relay.conf:"
+if [ -f "$WEECHAT_HOME/relay.conf" ]; then
+  echo "--------------------------------"
+  cat "$WEECHAT_HOME/relay.conf"
+  echo "--------------------------------"
+else
+  echo "relay.conf NO existe"
+fi
+
+echo "Configuración de relay terminada. Iniciando WeeChat en modo daemon..."
+
+# 5. Arrancar WeeChat como demonio, pero sin tumbar el contenedor si falla
+weechat --daemon -d "$WEECHAT_HOME" >/dev/null 2>&1 || echo "WeeChat daemon terminó con código $?"
+
+echo "WeeChat daemon lanzado (o al menos lo intentamos). El contenedor se mantendrá vivo."
+
+# 6. Mantener contenedor vivo siempre
 tail -f /dev/null
