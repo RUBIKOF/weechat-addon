@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # Directorio de WeeChat dentro del contenedor Docker
 WEECHAT_HOME="/root/.weechat"
