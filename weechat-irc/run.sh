@@ -10,36 +10,37 @@ CONFIG=$(</data/options.json)
 RELAY_PORT=$(echo "$CONFIG" | jq -r '.relay_port')
 RELAY_PASSWORD=$(echo "$CONFIG" | jq -r '.relay_password')
 
-# 2. Configuración inicial y Relay Setup
-# Exportar TERM es crucial para evitar el error 'ncurses: cannot initialize terminal type'
+# Exportar TERM es crucial
 export TERM=xterm
 
-# Ejecutar WeeChat en background (-d) para crear los archivos de configuración
-# Usamos -q (quit) y -n (no-connect)
+# 2. Ejecutar WeeChat en background para crear los archivos de configuración
 echo "Creando archivos de configuración iniciales de WeeChat..."
 weechat -d "$WEECHAT_HOME" -q -n &
 WEECHAT_PID=$!
 sleep 5
 
-# Intentamos asegurar que el proceso de configuración inicial termine
 if kill -0 "$WEECHAT_PID" 2>/dev/null; then
     kill "$WEECHAT_PID"
 fi
 
-# 3. Configurar el Relay de WeeChat (usando modo rooter -r)
+# 3. Configurar el Relay de WeeChat
 echo "Configurando WeeChat Relay en puerto $RELAY_PORT..."
 
-# Enviar comandos de configuración
+# --- PASOS DE CONFIGURACIÓN CLAVE ---
+# 3a. ELIMINAR CUALQUIER RELAY EXISTENTE
+weechat -d "$WEECHAT_HOME" -r "relay del weechat"
+weechat -d "$WEECHAT_HOME" -r "relay del websocket" # Por si acaso
+
+# 3b. ESTABLECER LA CONTRASEÑA Y OPCIONES
 weechat -d "$WEECHAT_HOME" -r "set relay.network.password \"$RELAY_PASSWORD\""
 weechat -d "$WEECHAT_HOME" -r "set relay.network.client_state \"disabled\""
 weechat -d "$WEECHAT_HOME" -r "set relay.network.ipv6 \"off\""
 
-# Agregar el servicio Relay
+# 3c. AGREGAR EL SERVICIO RELAY CON EL PUERTO LEÍDO
 weechat -d "$WEECHAT_HOME" -r "relay add weechat $RELAY_PORT"
 echo "✅ Relay configurado."
 
 # 4. Ejecución Final de WeeChat como Daemon
-# Ejecutamos WeeChat en background (-d) para que el servicio se quede activo
 echo "Iniciando WeeChat en segundo plano..."
 weechat -d "$WEECHAT_HOME"
 
