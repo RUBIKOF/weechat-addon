@@ -1,17 +1,21 @@
-FROM alpine:latest
+FROM debian:stable-slim
 
-RUN apk update && \
-    apk add --no-cache \
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        weechat-headless \
         jq \
-        weechat \
-        python3 \
-        py3-pip && \
-    rm -rf /var/cache/apk/*
+        ca-certificates \
+        python3 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY run.sh /
+# Script de arranque
+COPY run.sh /run.sh
 
 RUN mkdir -p /root/.weechat && \
-    chmod a+x /run.sh
+    chmod +x /run.sh
 
 EXPOSE 8000
 
