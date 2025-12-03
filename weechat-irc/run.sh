@@ -1,9 +1,14 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-export TERM=xterm
+set -e
+
 WEECHAT_HOME="/root/.weechat"
 
-echo "==== WeeChat IRC Server - init ===="
+echo "==== WeeChat IRC Server (headless) - init ===="
+
+if [ ! -f /data/options.json ]; then
+  echo "ERROR: /data/options.json no existe"
+fi
 
 CONFIG=$(cat /data/options.json 2>/dev/null || echo '{}')
 
@@ -15,8 +20,8 @@ echo "Password configurado: $RELAY_PASSWORD"
 
 mkdir -p "$WEECHAT_HOME"
 
-# Crear config inicial
-weechat -d "$WEECHAT_HOME" -r "/quit" || true
+echo "Primer arranque rápido para crear estructura de config..."
+weechat-headless -d "$WEECHAT_HOME" -r "/quit" >/dev/null 2>&1 || true
 
 # Configurar relay
 CMD="/plugin load relay;\
@@ -25,13 +30,25 @@ CMD="/plugin load relay;\
 /set relay.network.ipv6 off;\
 /relay del weechat;\
 /relay add weechat $RELAY_PORT;\
+/relay list;\
 /save;\
 /quit"
 
-weechat -d "$WEECHAT_HOME" -r "$CMD" || true
+echo "Ejecutando comandos de configuración en WeeChat headless:"
+echo "$CMD"
 
-echo "Iniciando WeeChat en foreground…"
-echo "VERÁS BASURA ANSI EN LOS LOGS (ES NORMAL)"
+weechat-headless -d "$WEECHAT_HOME" -r "$CMD" >/dev/null 2>&1 || true
 
-# ❗ EJECUTAR WEECHAT EN FOREGROUND (NUNCA USAR --daemon)
-exec weechat -d "$WEECHAT_HOME"
+echo "Contenido de $WEECHAT_HOME/relay.conf:"
+if [ -f "$WEECHAT_HOME/relay.conf" ]; then
+  echo "--------------------------------"
+  cat "$WEECHAT_HOME/relay.conf"
+  echo "--------------------------------"
+else
+  echo "relay.conf NO existe"
+fi
+
+echo "Arrancando WeeChat headless como proceso principal…"
+
+# 👇 Aquí sí: proceso principal del contenedor, sin TUI, sin daemon raro
+exec weechat-headless -d "$WEECHAT_HOME"
