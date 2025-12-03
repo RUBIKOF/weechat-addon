@@ -1,24 +1,28 @@
-# Usa una imagen base de Home Assistant que tenga Python
-# Se recomienda usar la imagen base oficial de HA para addons
-FROM ghcr.io/home-assistant/base-aarch64:stable
+# Usa una imagen base robusta con paquetes (ej. Alpine Linux)
+FROM ghcr.io/home-assistant/base-aarch64:stable 
 
-# O si tu Home Assistant no es aarch64, ajusta la arquitectura:
-# FROM ghcr.io/home-assistant/base-amd64:stable 
+# O si tu Home Assistant no es aarch64, ajusta la arquitectura (amd64, armv7)
+# FROM ghcr.io/home-assistant/base-amd64:stable
 
-# Instala Python 3 y pip
-RUN apk add --no-cache python3 py3-pip
+# Instala 'jq' para parsear JSON y 'weechat'
+# Usamos 'apk' si la base es Alpine, o 'apt' si es Debian-based. La imagen base de HA usa Alpine.
+RUN apk update && \
+    apk add --no-cache jq weechat && \
+    rm -rf /var/cache/apk/*
 
-# Copia el script de ejecución y el código del bridge
+# Copia el script de ejecución
 COPY run.sh /
-COPY weechat_bridge.py /app/
+# Copia la configuración (si tienes alguna inicial)
+# COPY files/weechat.conf /root/.weechat/weechat.conf
 
-# Instala las dependencias de Python
-# Necesitas una librería para el protocolo de relay de WeeChat (puedes buscar una o usar sockets)
-# Y la librería paho-mqtt para la comunicación con HA
-RUN pip3 install paho-mqtt
+# Crea la carpeta de configuración para WeeChat
+RUN mkdir -p /root/.weechat
 
-# Asegúrate de que el script sea ejecutable
+# Asegúrate de que el script de ejecución sea ejecutable
 RUN chmod a+x /run.sh
 
-# Establece el punto de entrada del contenedor
+# El addon expondrá este puerto para la conexión del relay
+EXPOSE 8000
+
+# Define el punto de entrada del addon
 CMD [ "/run.sh" ]
