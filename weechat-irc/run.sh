@@ -1,21 +1,9 @@
 #!/usr/bin/env sh
 
-# Importante: NO usamos "set -e" para que el contenedor no muera si algo falla
-
 export TERM=xterm
 WEECHAT_HOME="/root/.weechat"
 
 echo "==== WeeChat IRC Server - init ===="
-
-# 1. Leer opciones del addon
-if [ ! -f /data/options.json ]; then
-  echo "ERROR: /data/options.json no existe"
-  ls -R /data || true
-fi
-
-echo "Contenido de /data/options.json:"
-cat /data/options.json || true
-echo "=============================="
 
 CONFIG=$(cat /data/options.json 2>/dev/null || echo '{}')
 
@@ -25,44 +13,25 @@ RELAY_PASSWORD=$(echo "$CONFIG" | jq -r '.relay_password // .options.relay_passw
 echo "Puerto configurado: $RELAY_PORT"
 echo "Password configurado: $RELAY_PASSWORD"
 
-# 2. Asegurar carpeta
 mkdir -p "$WEECHAT_HOME"
 
-# 3. Primer arranque rápido para crear estructura
-echo "Primer arranque rápido para generar configuración base..."
-weechat -d "$WEECHAT_HOME" -r "/quit" >/dev/null 2>&1 || echo "Primer arranque salió con código $?"
+# Crear config inicial
+weechat -d "$WEECHAT_HOME" -r "/quit" || true
 
-# 4. Configurar relay en una sola llamada
+# Configurar relay
 CMD="/plugin load relay;\
 /set relay.network.password \"$RELAY_PASSWORD\";\
 /set relay.network.bind_address \"0.0.0.0\";\
 /set relay.network.ipv6 off;\
 /relay del weechat;\
 /relay add weechat $RELAY_PORT;\
-/relay list;\
 /save;\
 /quit"
 
-echo "Ejecutando comandos de configuración en WeeChat:"
-echo "$CMD"
+weechat -d "$WEECHAT_HOME" -r "$CMD" || true
 
-weechat -d "$WEECHAT_HOME" -r "$CMD" >/dev/null 2>&1 || echo "Configuración de relay devolvió código $?"
+echo "Iniciando WeeChat en foreground…"
+echo "VERÁS BASURA ANSI EN LOS LOGS (ES NORMAL)"
 
-echo "Contenido de $WEECHAT_HOME/relay.conf:"
-if [ -f "$WEECHAT_HOME/relay.conf" ]; then
-  echo "--------------------------------"
-  cat "$WEECHAT_HOME/relay.conf"
-  echo "--------------------------------"
-else
-  echo "relay.conf NO existe"
-fi
-
-echo "Configuración de relay terminada. Iniciando WeeChat en modo daemon..."
-
-# 5. Arrancar WeeChat como demonio, pero sin tumbar el contenedor si falla
-weechat --daemon -d "$WEECHAT_HOME" >/dev/null 2>&1 || echo "WeeChat daemon terminó con código $?"
-
-echo "WeeChat daemon lanzado (o al menos lo intentamos). El contenedor se mantendrá vivo."
-
-# 6. Mantener contenedor vivo siempre
-tail -f /dev/null
+# ❗ EJECUTAR WEECHAT EN FOREGROUND (NUNCA USAR --daemon)
+exec weechat -d "$WEECHAT_HOME"
