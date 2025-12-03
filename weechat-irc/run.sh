@@ -1,16 +1,15 @@
 #!/usr/bin/env sh
 
-# Salir si algo falla
 set -e
 
-# Para que ncurses no llore en los comandos de config
+# Para que ncurses no llore
 export TERM=xterm
 
 WEECHAT_HOME="/root/.weechat"
 
 echo "==== WeeChat IRC Server - init ===="
 
-# 1. Ver /data/options.json
+# 1. Leer opciones del addon
 if [ ! -f /data/options.json ]; then
   echo "ERROR: /data/options.json no existe"
   ls -R /data || true
@@ -20,7 +19,6 @@ echo "Contenido de /data/options.json:"
 cat /data/options.json || true
 echo "=============================="
 
-# 2. Leer opciones con jq (raíz y .options.* por compatibilidad)
 CONFIG=$(cat /data/options.json 2>/dev/null || echo '{}')
 
 RELAY_PORT=$(echo "$CONFIG" | jq -r '.relay_port // .options.relay_port // 8000')
@@ -31,11 +29,11 @@ echo "Password configurado: $RELAY_PASSWORD"
 
 mkdir -p "$WEECHAT_HOME"
 
-# 3. Primer arranque para generar estructura de config
+# 2. Primer arranque rápido para generar estructura
 echo "Primer arranque rápido para generar configuración base..."
 weechat -d "$WEECHAT_HOME" -r "/quit" || true
 
-# 4. Construir comando para configurar relay (una sola línea)
+# 3. Configurar relay en una sola llamada
 CMD="/plugin load relay;\
 /set relay.network.password \"$RELAY_PASSWORD\";\
 /set relay.network.bind_address \"0.0.0.0\";\
@@ -49,10 +47,9 @@ CMD="/plugin load relay;\
 echo "Ejecutando comandos de configuración en WeeChat:"
 echo "$CMD"
 
-# 5. Ejecutar comando de configuración (veremos la salida en logs)
 weechat -d "$WEECHAT_HOME" -r "$CMD"
 
-echo "Contenido de $WEECHAT_HOME/relay.conf (si existe):"
+echo "Contenido de $WEECHAT_HOME/relay.conf:"
 if [ -f "$WEECHAT_HOME/relay.conf" ]; then
   echo "--------------------------------"
   cat "$WEECHAT_HOME/relay.conf"
@@ -61,12 +58,8 @@ else
   echo "relay.conf NO existe"
 fi
 
-echo "Configuración de relay terminada. Arrancando WeeChat en modo daemon..."
+echo "Configuración de relay terminada. Iniciando WeeChat en foreground..."
+echo "OJO: verás basura ANSI en los logs, es normal."
 
-# 6. Ahora sí: WeeChat como servicio (sin interfaz), que se quede vivo
-weechat --daemon -d "$WEECHAT_HOME"
-
-echo "WeeChat daemon iniciado. Relay debería estar escuchando en 0.0.0.0:$RELAY_PORT"
-
-# 7. Mantener el contenedor vivo para que el addon no se pare
-tail -f /dev/null
+# 4. WeeChat como proceso principal del contenedor (se queda vivo)
+exec weechat -d "$WEECHAT_HOME"
