@@ -1,0 +1,18 @@
+name: WeeChat IRC
+version: "0.1.0"
+slug: weechat
+description: "WeeChat IRC client as a Home Assistant addon"
+arch:
+  - amd64
+  - armhf
+  - aarch64
+url: "https://github.com/tu-usuario/weechat-addon"
+startup: services
+boot: auto
+ports:
+  9001:9001/tcp  # Relay interface (weechat relay)
+  8082:8082/tcp  # Glowing Bear (opcional, interfaz web)
+options:
+  password: "changeme"  # Contraseña para el relay
+schema:
+  password: "str"
