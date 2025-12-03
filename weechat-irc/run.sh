@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
 
+set -e
+
+# 💡 Truco clave: darle un terminal válido a ncurses
+export TERM=xterm
+
 WEECHAT_HOME="/root/.weechat"
 
 echo "==== WeeChat IRC Server - init ===="
