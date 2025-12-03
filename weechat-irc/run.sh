@@ -1,10 +1,8 @@
 #!/usr/bin/env sh
 
-set -e
+# NO usamos "set -e" para que el contenedor no muera si algo falla
 
-# Para que ncurses no llore
 export TERM=xterm
-
 WEECHAT_HOME="/root/.weechat"
 
 echo "==== WeeChat IRC Server - init ===="
@@ -27,13 +25,14 @@ RELAY_PASSWORD=$(echo "$CONFIG" | jq -r '.relay_password // .options.relay_passw
 echo "Puerto configurado: $RELAY_PORT"
 echo "Password configurado: $RELAY_PASSWORD"
 
+# 2. Asegurar carpeta
 mkdir -p "$WEECHAT_HOME"
 
-# 2. Primer arranque rápido para generar estructura
+# 3. Primer arranque rápido para crear estructura
 echo "Primer arranque rápido para generar configuración base..."
-weechat -d "$WEECHAT_HOME" -r "/quit" || true
+weechat -d "$WEECHAT_HOME" -r "/quit" >/dev/null 2>&1 || echo "Primer arranque salió con código $?"
 
-# 3. Configurar relay en una sola llamada
+# 4. Configurar relay en una sola llamada
 CMD="/plugin load relay;\
 /set relay.network.password \"$RELAY_PASSWORD\";\
 /set relay.network.bind_address \"0.0.0.0\";\
@@ -47,7 +46,7 @@ CMD="/plugin load relay;\
 echo "Ejecutando comandos de configuración en WeeChat:"
 echo "$CMD"
 
-weechat -d "$WEECHAT_HOME" -r "$CMD"
+weechat -d "$WEECHAT_HOME" -r "$CMD" || echo "Configuración de relay devolvió código $?"
 
 echo "Contenido de $WEECHAT_HOME/relay.conf:"
 if [ -f "$WEECHAT_HOME/relay.conf" ]; then
@@ -58,8 +57,11 @@ else
   echo "relay.conf NO existe"
 fi
 
-echo "Configuración de relay terminada. Iniciando WeeChat en foreground..."
-echo "OJO: verás basura ANSI en los logs, es normal."
+echo "Configuración de relay terminada. Iniciando WeeChat en modo daemon..."
 
-# 4. WeeChat como proceso principal del contenedor (se queda vivo)
-exec weechat -d "$WEECHAT_HOME"
+# 5. Arrancar WeeChat como demonio, pero sin tumbar el contenedor si falla
+weechat --daemon -d "$WEECHAT_HOME" || echo "WeeChat daemon terminó con código $?"
+
+echo "WeeChat daemon lanzado (o intentado). El contenedor se mantendrá vivo."
+# 6. Mantener contenedor vivo para poder inspeccionarlo aunque WeeChat muera
+tail -f /dev/null
