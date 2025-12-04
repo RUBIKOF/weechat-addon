@@ -1,34 +1,33 @@
-# Forzamos explícitamente la base Debian de Home Assistant
-ARG BUILD_FROM=ghcr.io/home-assistant/{ARCH}-base-debian:latest
+# Home Assistant FORZARÁ Alpine, así que nos ajustamos a Alpine
+ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
-# Evitamos prompts interactivos
+# Evitar prompts
+ENV TERM=xterm
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Paquetes base: node, npm, git, certificados, etc.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      ca-certificates \
-      curl \
-      git \
-      nodejs \
-      npm \
-      tzdata && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Instalar dependencias con apk (Alpine)
+RUN apk add --no-cache \
+    ca-certificates \
+    curl \
+    git \
+    nodejs \
+    npm \
+    tzdata
 
-# Directorio donde clonaremos KiwiIRC
+# Directorio de instalación
 ENV KIWIIRC_HOME=/opt/kiwiirc
 
-# Clonamos KiwiIRC desde GitHub y instalamos dependencias
-RUN git clone https://github.com/kiwiirc/kiwiirc.git ${KIWIIRC_HOME} && \
-    cd ${KIWIIRC_HOME} && \
-    npm install --production
+# Clonar KiwiIRC
+RUN git clone --depth=1 https://github.com/kiwiirc/kiwiirc.git ${KIWIIRC_HOME}
 
-# Puerto por donde exponemos KiwiIRC
+# Instalar dependencias de Node
+RUN cd ${KIWIIRC_HOME} && npm install --production
+
+# Puerto
 EXPOSE 7778
 
-# Script de arranque del add-on
+# Copiar script de arranque
 COPY run.sh /usr/bin/run.sh
 RUN chmod +x /usr/bin/run.sh
 
