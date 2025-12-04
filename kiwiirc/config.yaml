@@ -1,14 +1,15 @@
 name: Kiwi IRC Web Client
-version: "20.05.24.2"
+version: "20.05.24.1"
 slug: kiwiirc_webclient
 description: "Official Kiwi IRC web client for ZNC"
 arch:
-  - aarch64    # arm64
-  - amd64      # x86_64
-  - armv7      # armhf
+  - aarch64
+  - amd64
+  - armv7
 url: "https://github.com/RUBIKOF/weechat-addon"
 webui: "http://[HOST]:[PORT:8080]"
 panel_icon: mdi:chat-processing
 ports:
   8080/tcp: 8080
 host_network: true
+init: false  # ← ESTA LÍNEA NUEVA
