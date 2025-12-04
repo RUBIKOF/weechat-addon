@@ -1,17 +1,30 @@
 name: ZNC IRC Bouncer
-version: "1.0.4" # Nueva versión para reflejar las correcciones
+version: "1.0.5"
 slug: znc_irc_bouncer
-description: "An advanced IRC bouncer, allowing you to stay connected to IRC networks."
+description: "Advanced IRC bouncer with web interface"
 arch:
   - aarch64
   - amd64
+  - armhf
   - armv7
-url: "https://github.com/RUBIKOF/weechat-addon" 
-webui: http://[HOST]:[PORT:8888] # Usamos el puerto 8888 para la interfaz web (seguro)
+  - i386
+init: false
+url: https://github.com/RUBIKOF/weechat-addon
+webui: http://[HOST]:[PORT:8888]
 panel_icon: mdi:chat-processing
 ports:
-  6667/tcp: 6667 # Puerto por defecto para la conexión IRC/Bouncer (puerto inseguro para navegadores)
-  8888/tcp: 8888 # Nuevo puerto para la Interfaz Web de ZNC (Puerto seguro para navegadores)
+  6667/tcp: 6667
+  8888/tcp: 8888
+ports_description:
+  6667/tcp: "IRC bouncer port"
+  8888/tcp: "Web administration interface"
+map:
+  - config:rw
+  - ssl:rw
+options:
+  ssl: false
+  znc_data: /config/znc
 schema:
   log_level: list(trace|debug|info|warning|error|fatal)?
-  
+  ssl: bool?
+  znc_data: str?
