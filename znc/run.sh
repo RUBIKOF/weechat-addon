@@ -1,21 +1,20 @@
-#!/bin/bash
+#!/bin/sh
+set -e
+
 echo "--- Inicia el Add-on de ZNC ---"
 
 # Ruta de configuración
 ZNC_DIR=/config/znc
-mkdir -p $ZNC_DIR
+CONFIG_FILE="${ZNC_DIR}/znc.conf"
 
-# Cambiar a usuario znc para evitar warning de root
-if id znc >/dev/null 2>&1; then
-    chown -R znc:znc $ZNC_DIR
-fi
+# Crear directorio si no existe
+mkdir -p "${ZNC_DIR}"
 
 # Verificar si ya existe configuración
-if [ ! -f "$ZNC_DIR/znc.conf" ]; then
+if [ ! -f "${CONFIG_FILE}" ]; then
     echo "Creando configuración inicial..."
     
-    # Crear configuración básica directamente
-    cat > $ZNC_DIR/znc.conf << 'EOF'
+    cat > "${CONFIG_FILE}" << 'EOF'
 Version = 1.8.2
 LoadModule = webadmin
 
@@ -49,13 +48,15 @@ LoadModule = webadmin
 </User>
 EOF
     
-    echo "Configuración creada. Usuario: admin, Contraseña: password"
+    echo "Configuración creada en: ${CONFIG_FILE}"
+    echo "Usuario: admin, Contraseña: password"
+    echo "Accede a la interfaz web en: http://[TU_IP_HA]:8888"
 fi
+
+# Configurar permisos adecuados
+find "${ZNC_DIR}" -type d -exec chmod 755 {} \;
+find "${ZNC_DIR}" -type f -exec chmod 644 {} \;
 
 # Iniciar ZNC
 echo "Iniciando ZNC..."
-if id znc >/dev/null 2>&1; then
-    exec su -s /bin/sh -c "znc -d $ZNC_DIR -f" znc
-else
-    exec znc -d $ZNC_DIR -f
-fi
+exec znc -d "${ZNC_DIR}" -f
