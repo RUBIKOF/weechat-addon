@@ -3,14 +3,23 @@ set -e
 
 echo "--- Iniciando KiwiIRC ---"
 
-# Directorio de trabajo (por si quieres luego guardar algo en /config/kiwiirc)
 KIWI_DIR=/config/kiwiirc
-mkdir -p "${KIWI_DIR}"
+KIWI_INSTALL=/opt/kiwiirc
 
-cd /opt/kiwiirc
+# Crear carpeta de config persistente
+mkdir -p "$KIWI_DIR"
 
-# Puerto donde escuchará KiwiIRC
-export PORT=7778
+# Si no existe config.yaml en /config, copiar la predeterminada
+if [ ! -f "$KIWI_DIR/config.yaml" ]; then
+    echo "Copiando configuración por defecto a /config/kiwiirc/config.yaml"
+    cp "$KIWI_INSTALL/config.example.yaml" "$KIWI_DIR/config.yaml"
+fi
 
-# Lanzar KiwiIRC
-exec npm start
+# Usar config.yaml persistente
+export KIWI_CONFIG="$KIWI_DIR/config.yaml"
+
+cd "$KIWI_INSTALL"
+
+echo "--- Ejecutando servidor KiwiIRC ---"
+
+exec node server/server.js --config "$KIWI_CONFIG"
