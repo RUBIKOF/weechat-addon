@@ -1,8 +1,8 @@
-# 1. Recibe el argumento inyectado desde config.yaml (ahora Debian)
-ARG BUILD_FROM
-
-# 2. Usa la variable para definir la imagen base
-FROM ${BUILD_FROM}
+# --------------------------------------------------------------------------
+# ⚠️ CAMBIO CRUCIAL: Usamos la imagen base de Debian DIRECTAMENTE, 
+#                     sin depender de la inyección del argumento BUILD_FROM.
+# --------------------------------------------------------------------------
+FROM ghcr.io/home-assistant/aarch64-base-debian:latest
 
 # Instalamos Perl, sus utilidades (cpanminus) y las librerías necesarias
 # para compilar módulos (build-essential, libssl-dev, etc.) usando APT.
