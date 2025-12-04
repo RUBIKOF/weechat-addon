@@ -17,8 +17,8 @@ RUN apk update && \
         curl \
         jq \
         perl-app-cpanminus \
-    # Instalamos Convos con cpanminus
-    && cpanm --notest Convos \
+    # Instalamos Convos con cpanminus usando el nombre correcto: App::Convos
+    && cpanm --notest App::Convos \
     # Limpieza
     && rm -rf /var/cache/apk/* /root/.cpanm /root/.cpan
 
