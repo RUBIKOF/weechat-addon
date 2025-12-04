@@ -1,0 +1,34 @@
+{
+  "name": "ZNC IRC Bouncer",
+  "version": "0.1.0",
+  "slug": "znc",
+  "description": "ZNC IRC bouncer for persistent IRC sessions",
+  "url": "https://znc.in/",
+  "arch": [
+    "aarch64",
+    "amd64",
+    "armv7"
+  ],
+  "startup": "services",
+  "boot": "auto",
+  "ingress": false,
+  "ports": {
+    "6501/tcp": 6501,
+    "6697/tcp": 6697
+  },
+  "ports_description": {
+    "6501/tcp": "ZNC web admin interface",
+    "6697/tcp": "ZNC IRC port"
+  },
+  "map": [
+    "config:rw"
+  ],
+  "environment": {
+    "TZ": "America/Mexico_City",
+    "PUID": "0",
+    "PGID": "0"
+  },
+  "options": {},
+  "schema": {},
+  "image": "lscr.io/linuxserver/znc:latest"
+}
