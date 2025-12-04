@@ -1,5 +1,6 @@
 name: "WeeChat and IRC Tools Repository"
 maintainer: "RUBIKOF"
+
 addons:
   - name: "WeeChat IRC Server"
     slug: "weechat_irc_server"
@@ -11,7 +12,7 @@ addons:
     url: "https://github.com/RUBIKOF/weechat-addon"
     version: "0.1.0"
     target: "weechat-irc"
-  
+
   - name: "Glowing Bear"
     slug: "glowingbear"
     description: "Web UI for WeeChat (relay client)"
@@ -22,14 +23,25 @@ addons:
     url: "https://github.com/RUBIKOF/weechat-addon"
     version: "0.1.0"
     target: "glowingbear"
-  
-  - name: "Convos IRC Web Bouncer"
-    slug: "convos_irc_web"
-    description: "A self-hosted, always-on IRC web client (bouncer)."
+
+  - name: "ZNC IRC Bouncer"
+    slug: "znc"
+    description: "ZNC IRC bouncer for persistent IRC sessions"
     arch:
       - aarch64
       - amd64
       - armv7
     url: "https://github.com/RUBIKOF/weechat-addon"
-    version: "1.0.0"
-    target: "convos-addon" # 👈 Nombre de la carpeta de Convos
+    version: "0.1.0"
+    target: "znc"
+
+  - name: "KiwiIRC Web Client"
+    slug: "kiwiirc"
+    description: "Simple web IRC client with HA ingress"
+    arch:
+      - aarch64
+      - amd64
+      - armv7
+    url: "https://github.com/RUBIKOF/weechat-addon"
+    version: "0.1.0"
+    target: "kiwiirc"
