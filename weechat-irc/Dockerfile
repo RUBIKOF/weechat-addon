@@ -1,34 +1,22 @@
-# 1. Define la variable ARG
-ARG BUILD_FROM
+FROM debian:stable-slim
 
-# 2. Usa la variable FROM y proporciona un valor predeterminado seguro para AARCH64
-#    Si el Supervisor falla al inyectar BUILD_FROM, usará la imagen base de Debian-Build.
-FROM ${BUILD_FROM:-ghcr.io/home-assistant/aarch64-base-debian-build:latest}
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Instalamos Perl, sus utilidades (cpanminus) y las librerías necesarias.
-# build-essential ya está incluido en la imagen base.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        perl \
-        libssl-dev \
-        libpq-dev \
-        ca-certificates \
-        curl \
+        weechat-headless \
+        weechat-plugins \
         jq \
-        cpanminus \
-    # Limpieza de caché de APT
-    && rm -rf /var/lib/apt/lists/* \
-    # Instalamos Convos con cpanminus usando el nombre correcto: App::Convos
-    && cpanm --notest App::Convos \
-    # Limpieza final de CPAN
-    && rm -rf /root/.cpanm /root/.cpan
-    
-# Puerto por defecto de Convos
-EXPOSE 8080
+        ca-certificates \
+        python3 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copiar el script de inicio
-COPY run.sh /usr/bin/run.sh
-RUN chmod +x /usr/bin/run.sh
+COPY run.sh /run.sh
 
-# Comando de inicio del Add-on
-CMD [ "/usr/bin/run.sh" ]
+RUN mkdir -p /root/.weechat && \
+    chmod +x /run.sh
+
+EXPOSE 8000
+
+CMD ["/run.sh"]
