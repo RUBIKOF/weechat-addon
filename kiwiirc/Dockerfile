@@ -1,22 +1,22 @@
-ARG BUILD_FROM
-FROM ${BUILD_FROM}
+FROM nginx:alpine
 
-# Instalar nginx en la imagen base de HA
-RUN apk add --no-cache nginx
+# Instalar dependencias para descargar y configurar
+RUN apk add --no-cache curl jq
 
 # Descargar Kiwi IRC
-RUN wget -O /tmp/kiwi.tar.gz https://github.com/kiwiirc/kiwiirc/releases/download/v2.1.0/kiwiirc.tar.gz \
-    && tar -xzf /tmp/kiwi.tar.gz -C /var/www \
-    && rm /tmp/kiwi.tar.gz \
-    && mv /var/www/kiwiirc-* /var/www/kiwiirc
+RUN curl -L -o /tmp/kiwiirc.tar.gz \
+    https://github.com/kiwiirc/kiwiirc/releases/download/v2.1.0/kiwiirc.tar.gz \
+    && tar -xzf /tmp/kiwiirc.tar.gz -C /tmp \
+    && mv /tmp/kiwiirc-* /usr/share/nginx/html \
+    && rm /tmp/kiwiirc.tar.gz
 
-# Copiar configuración nginx
-COPY nginx.conf /etc/nginx/http.d/default.conf
+# Copiar configuración personalizada
+COPY config.json /usr/share/nginx/html/config.json
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY run.sh /run.sh
 
-# Script de inicio simple
-COPY run.sh /
 RUN chmod +x /run.sh
 
 EXPOSE 8080
 
-CMD [ "/run.sh" ]
+CMD ["/run.sh"]
