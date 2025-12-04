@@ -25,6 +25,5 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
 
 EXPOSE 8080
 
-# USAR init: false en config.yaml y evitar s6
-ENTRYPOINT ["nginx"]
-CMD ["-g", "daemon off;"]
+# Directo, sin s6
+CMD ["nginx", "-g", "daemon off;"]
