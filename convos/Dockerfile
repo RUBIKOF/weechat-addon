@@ -1,8 +1,9 @@
-# ----------------------------------------------------------------------------------
-# ⚠️ CAMBIO CRUCIAL: Usamos la sintaxis nativa de Home Assistant para sustituir
-# la arquitectura y forzar el uso de la imagen base de Debian-Build.
-# ----------------------------------------------------------------------------------
-FROM ghcr.io/home-assistant/%%BUILD_ARCH%%-base-debian-build:latest
+# Define la variable de arquitectura.
+ARG BUILD_FROM
+
+# ⚠️ FORZAMOS la imagen base de Debian-Build con un valor predeterminado 
+#    para que funcione si el Supervisor falla al inyectar BUILD_FROM.
+FROM ${BUILD_FROM:-ghcr.io/home-assistant/aarch64-base-debian-build:latest}
 
 # Instalamos Perl, sus utilidades (cpanminus) y las librerías necesarias.
 # build-essential ya está incluido en la imagen base.
@@ -14,13 +15,13 @@ RUN apt-get update && \
         ca-certificates \
         curl \
         jq \
-        cpanminus \
+        cpanminus && \
     # Limpieza de caché de APT
-    && rm -rf /var/lib/apt/lists/* \
+    rm -rf /var/lib/apt/lists/* && \
     # Instalamos Convos con cpanminus usando el nombre correcto: App::Convos
-    && cpanm --notest App::Convos \
+    cpanm --notest App::Convos && \
     # Limpieza final de CPAN
-    && rm -rf /root/.cpanm /root/.cpan
+    rm -rf /root/.cpanm /root/.cpan
     
 # Puerto por defecto de Convos
 EXPOSE 8080
