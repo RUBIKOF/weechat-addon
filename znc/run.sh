@@ -1,32 +1,21 @@
-#!/bin/sh
+#!/bin/bash
+echo "--- Inicia el Add-on de ZNC ---"
 
-set -e
+# Ruta de configuración
+ZNC_DIR=/config/znc
+mkdir -p $ZNC_DIR
 
-CONFIG_DIR="/config/znc"
-CONFIG_FILE="${CONFIG_DIR}/znc.conf"
-DATA_DIR="${CONFIG_DIR}/modules"
+# Cambiar a usuario znc para evitar warning de root
+if id znc >/dev/null 2>&1; then
+    chown -R znc:znc $ZNC_DIR
+fi
 
-echo "Starting ZNC Add-on..."
-
-# Create directories
-mkdir -p "${CONFIG_DIR}"
-mkdir -p "${DATA_DIR}"
-
-# Fix permissions
-chown -R znc:nogroup "${CONFIG_DIR}"
-chmod -R 755 "${CONFIG_DIR}"
-
-# Create default config if not exists
-if [ ! -f "${CONFIG_FILE}" ]; then
-    echo "Creating default configuration..."
+# Verificar si ya existe configuración
+if [ ! -f "$ZNC_DIR/znc.conf" ]; then
+    echo "Creando configuración inicial..."
     
-    # Run initial setup as znc user
-    if su-exec znc znc --datadir "${CONFIG_DIR}" --makeconf --foreground; then
-        echo "Initial setup completed"
-    else
-        # If interactive setup fails, create minimal config
-        echo "Creating minimal configuration..."
-        cat > "${CONFIG_FILE}" << 'EOF'
+    # Crear configuración básica directamente
+    cat > $ZNC_DIR/znc.conf << 'EOF'
 Version = 1.8.2
 LoadModule = webadmin
 
@@ -51,37 +40,22 @@ LoadModule = webadmin
     AltNick = admin_
     Ident = admin
     RealName = ZNC Admin
-    Buffer = 50
     
     <Pass password>
         Method = sha256
         Hash = f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2
-        Salt = _/QsfSGR
+        Salt = kd84jD8d
     </Pass>
 </User>
 EOF
-        echo "Minimal configuration created"
-    fi
     
-    # Wait for config to be written
-    sleep 2
+    echo "Configuración creada. Usuario: admin, Contraseña: password"
 fi
 
-# Verify and fix config if needed
-if ! grep -q "Port = 8888" "${CONFIG_FILE}"; then
-    echo "Adding web listener on port 8888..."
-    echo "" >> "${CONFIG_FILE}"
-    cat >> "${CONFIG_FILE}" << 'EOL'
-<Listener web>
-    Port = 8888
-    IPv4 = true
-    IPv6 = true
-    SSL = false
-    AllowWeb = true
-</Listener>
-EOL
+# Iniciar ZNC
+echo "Iniciando ZNC..."
+if id znc >/dev/null 2>&1; then
+    exec su -s /bin/sh -c "znc -d $ZNC_DIR -f" znc
+else
+    exec znc -d $ZNC_DIR -f
 fi
-
-# Start ZNC as znc user
-echo "Starting ZNC server..."
-exec su-exec znc znc --datadir "${CONFIG_DIR}" --foreground
