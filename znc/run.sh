@@ -13,12 +13,11 @@ if [ ! -f "${ZNC_CONFIG_FILE}" ]; then
     echo "Configurando ZNC por primera vez en ${ZNC_DIR}."
     echo "Generando configuración mínima requerida y segura."
     
-    # ⚠️ CORRECCIÓN CLAVE:
-    # 1. Usamos printf para la entrada.
-    # 2. Procesamos la salida de znc --makepass con 'strings' para eliminar todos los caracteres no imprimibles.
+    # ⚠️ CORRECCIÓN CLAVE: Usamos 'strings' para eliminar todos los caracteres de control y nulos
+    # de la salida del hash, eliminando la causa del error 'Malformed line'.
     ZNC_HASH=$(printf 'temporal_pass_ha\ntemporal_pass_ha\n' | znc --makepass | strings)
     
-    # 3. Escribimos línea por línea con el hash limpio.
+    # 2. Escribimos el archivo de configuración completo.
     echo "Escribiendo archivo de configuración en ${ZNC_CONFIG_FILE}"
     
     echo "Version = 1.8.2" > "${ZNC_CONFIG_FILE}"
