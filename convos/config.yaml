@@ -6,7 +6,7 @@ arch:
   - aarch64
   - amd64
   - armv7
-url: "https://github.com/tu-usuario/tu-repositorio" # ¡Asegúrate de cambiar esto!
+url: "https://github.com/RUBIKOF/convos" # ¡Asegúrate de cambiar esto!
 webui: http://[HOST]:[PORT:8080]
 panel_icon: mdi:chat-processing
 ports:
