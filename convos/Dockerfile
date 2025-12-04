@@ -1,8 +1,8 @@
-# 1. Recibe el argumento inyectado desde config.yaml (ahora Debian-Build)
-ARG BUILD_FROM
-
-# 2. Usa la variable para definir la imagen base
-FROM ${BUILD_FROM}
+# ----------------------------------------------------------------------------------
+# ⚠️ CAMBIO CRUCIAL: Usamos la sintaxis nativa de Home Assistant para sustituir
+# la arquitectura y forzar el uso de la imagen base de Debian-Build.
+# ----------------------------------------------------------------------------------
+FROM ghcr.io/home-assistant/%%BUILD_ARCH%%-base-debian-build:latest
 
 # Instalamos Perl, sus utilidades (cpanminus) y las librerías necesarias.
 # build-essential ya está incluido en la imagen base.
