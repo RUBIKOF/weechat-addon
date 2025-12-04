@@ -1,27 +1,33 @@
 FROM perl:5.38-slim
 
-# Variables básicas
+# Evitar que debconf intente diálogos interactivos
+ENV DEBIAN_FRONTEND=noninteractive
 ENV CONVOS_HOME=/data
 ENV PERL_MM_USE_DEFAULT=1
 
-# Instalar dependencias y Convos desde CPAN
+# Instalar compiladores + librerías nativas típicas para Convos y dependencias
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       build-essential \
       git \
       ca-certificates \
-      curl && \
+      curl \
+      libssl-dev \
+      libpq-dev \
+      libz-dev \
+      libgdbm-dev \
+      libreadline-dev \
+      libsqlite3-dev \
+      libcurl4-openssl-dev && \
     update-ca-certificates && \
     curl -L https://cpanmin.us | perl - App::cpanminus && \
     cpanm --notest Convos && \
     apt-get purge -y build-essential git && \
     apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* /root/.cpanm
 
-# Puerto por defecto de Convos
 EXPOSE 3000
 
-# Script de arranque
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
 
