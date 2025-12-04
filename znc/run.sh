@@ -1,38 +1,43 @@
-#!/bin/bash
-# Script de inicio para ZNC
+#!/bin/sh
 
-echo "--- Inicia el Add-on de ZNC ---"
+set -e
 
-# 1. Definir la ruta de datos para la persistencia
-ZNC_DIR=/config/znc
-ZNC_CONFIG_FILE="${ZNC_DIR}/configs/znc.conf"
-mkdir -p "${ZNC_DIR}/configs"
+CONFIG_DIR="/config/znc"
+CONFIG_FILE="${CONFIG_DIR}/znc.conf"
+DATA_DIR="${CONFIG_DIR}/modules"
 
-# 2. Crear usuario para ejecutar ZNC (evitar root)
-if ! id -u znc >/dev/null 2>&1; then
-    adduser --system --no-create-home --disabled-login --group znc
-fi
+echo "Starting ZNC Add-on..."
 
-# 3. Cambiar permisos
-chown -R znc:znc "${ZNC_DIR}"
+# Create directories
+mkdir -p "${CONFIG_DIR}"
+mkdir -p "${DATA_DIR}"
 
-# 4. Configuración inicial: Solo si znc.conf NO existe
-if [ ! -f "${ZNC_CONFIG_FILE}" ]; then
-    echo "Creando configuración inicial para ZNC..."
+# Fix permissions
+chown -R znc:nogroup "${CONFIG_DIR}"
+chmod -R 755 "${CONFIG_DIR}"
+
+# Create default config if not exists
+if [ ! -f "${CONFIG_FILE}" ]; then
+    echo "Creating default configuration..."
     
-    # Crear archivo de configuración básico manualmente
-    cat > "${ZNC_CONFIG_FILE}" << 'EOF'
+    # Run initial setup as znc user
+    if su-exec znc znc --datadir "${CONFIG_DIR}" --makeconf --foreground; then
+        echo "Initial setup completed"
+    else
+        # If interactive setup fails, create minimal config
+        echo "Creating minimal configuration..."
+        cat > "${CONFIG_FILE}" << 'EOF'
 Version = 1.8.2
 LoadModule = webadmin
 
-<Listener listener1>
+<Listener irc>
     Port = 6667
     IPv4 = true
     IPv6 = true
     SSL = false
 </Listener>
 
-<Listener listener2>
+<Listener web>
     Port = 8888
     IPv4 = true
     IPv6 = true
@@ -45,33 +50,28 @@ LoadModule = webadmin
     Nick = admin
     AltNick = admin_
     Ident = admin
-    RealName = ZNC Administrator
+    RealName = ZNC Admin
     Buffer = 50
-    FloodBurst = 4
-    FloodRate = 1.00
-    TimestampFormat = [%H:%M:%S]
-
+    
     <Pass password>
         Method = sha256
         Hash = f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2
-        Salt = 1234567890
+        Salt = _/QsfSGR
     </Pass>
 </User>
 EOF
+        echo "Minimal configuration created"
+    fi
     
-    echo "Configuración inicial creada. IMPORTANTE: Cambia la contraseña después del primer login."
-    echo "Contraseña por defecto: password"
-    
-    # Ahora ejecutamos ZNC para que complete la configuración
-    su -s /bin/sh -c "znc --makeconf --datadir \"${ZNC_DIR}\" --foreground" znc
-    sleep 3
+    # Wait for config to be written
+    sleep 2
 fi
 
-# 5. Verificar que el Listener esté configurado
-if ! grep -q "Port = 8888" "${ZNC_CONFIG_FILE}"; then
-    echo "Añadiendo Listener para puerto 8888..."
-    echo "" >> "${ZNC_CONFIG_FILE}"
-    cat >> "${ZNC_CONFIG_FILE}" << 'EOL'
+# Verify and fix config if needed
+if ! grep -q "Port = 8888" "${CONFIG_FILE}"; then
+    echo "Adding web listener on port 8888..."
+    echo "" >> "${CONFIG_FILE}"
+    cat >> "${CONFIG_FILE}" << 'EOL'
 <Listener web>
     Port = 8888
     IPv4 = true
@@ -82,13 +82,6 @@ if ! grep -q "Port = 8888" "${ZNC_CONFIG_FILE}"; then
 EOL
 fi
 
-# 6. Verificar que haya al menos un usuario
-if ! grep -q "<User " "${ZNC_CONFIG_FILE}"; then
-    echo "ERROR: No hay usuarios configurados en znc.conf"
-    echo "Elimina ${ZNC_CONFIG_FILE} para recrear la configuración"
-    exit 1
-fi
-
-# 7. Iniciar ZNC como usuario znc
-echo "Lanzando ZNC en modo Daemon como usuario znc..."
-exec su -s /bin/sh -c "znc -d \"${ZNC_DIR}\" -f" znc
+# Start ZNC as znc user
+echo "Starting ZNC server..."
+exec su-exec znc znc --datadir "${CONFIG_DIR}" --foreground
