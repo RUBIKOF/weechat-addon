@@ -8,22 +8,16 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ARG TARGETARCH
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-        KIWI_URL="https://kiwiirc.com/downloads/kiwiirc_20.05.24.1-1_amd64.deb"; \
-    elif [ "$TARGETARCH" = "arm64" ]; then \
-        KIWI_URL="https://kiwiirc.com/downloads/kiwiirc_20.05.24.1-1_arm64.deb"; \
-    elif [ "$TARGETARCH" = "armhf" ]; then \
-        KIWI_URL="https://kiwiirc.com/downloads/kiwiirc_20.05.24.1-1_armhf.deb"; \
-    else \
-        echo "Arquitectura no soportada: $TARGETARCH" && exit 1; \
-    fi && \
-    wget -O /tmp/kiwiirc.deb "$KIWI_URL" && \
+# Solo amd64 por ahora
+RUN wget -O /tmp/kiwiirc.deb \
+    "https://kiwiirc.com/downloads/kiwiirc_20.05.24.1-1_amd64.deb" && \
     dpkg-deb -x /tmp/kiwiirc.deb /tmp/kiwiirc-extract && \
     mv /tmp/kiwiirc-extract/usr/share/kiwiirc /var/www/html && \
     rm -rf /tmp/kiwiirc.deb /tmp/kiwiirc-extract
 
 EXPOSE 8080
 
-# Directo, sin s6
-CMD ["nginx", "-g", "daemon off;"]
+COPY run.sh /run.sh
+RUN chmod +x /run.sh
+
+CMD ["/run.sh"]
