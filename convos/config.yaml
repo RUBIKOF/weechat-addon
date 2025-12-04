@@ -1,12 +1,12 @@
 name: Convos IRC Web Bouncer
-version: "1.0.0"
-slug: convos_irc
+version: "1.1.0"
+slug: convos_irc_web
 description: "A self-hosted, always-on IRC web client (bouncer) with modern features."
 arch:
   - aarch64
   - amd64
   - armv7
-url: "https://github.com/RUBIKOF/convos" # ¡Asegúrate de cambiar esto!
+url: "https://github.com/RUBIKOF/weechat-addon"
 webui: http://[HOST]:[PORT:8080]
 panel_icon: mdi:chat-processing
 ports:
@@ -15,4 +15,9 @@ schema:
   log_level: list(trace|debug|info|warning|error|fatal)?
   username: str
   password: str
-  
+# --- SECCIÓN AÑADIDA ---
+build:
+  args:
+    # Esta variable se inyecta en el Dockerfile para que Home Assistant
+    # pueda sustituir {ARCH} por la arquitectura correcta (aarch64, amd64, etc.)
+    BUILD_FROM: "ghcr.io/home-assistant/{ARCH}-base:latest"
