@@ -1,10 +1,8 @@
-# Home Assistant FORZARÁ Alpine, así que nos ajustamos a Alpine
-ARG BUILD_FROM
-FROM ${BUILD_FROM}
+# Imagen base LIMPIA, sin s6, sin HA: solo Alpine
+FROM alpine:3.20
 
-# Evitar prompts
+# Evitar prompts innecesarios
 ENV TERM=xterm
-ENV DEBIAN_FRONTEND=noninteractive
 
 # Instalar dependencias con apk (Alpine)
 RUN apk add --no-cache \
@@ -15,19 +13,19 @@ RUN apk add --no-cache \
     npm \
     tzdata
 
-# Directorio de instalación
+# Directorio de instalación de KiwiIRC
 ENV KIWIIRC_HOME=/opt/kiwiirc
 
-# Clonar KiwiIRC
+# Clonar KiwiIRC desde GitHub (shallow clone para hacerlo más ligero)
 RUN git clone --depth=1 https://github.com/kiwiirc/kiwiirc.git ${KIWIIRC_HOME}
 
 # Instalar dependencias de Node
 RUN cd ${KIWIIRC_HOME} && npm install --production
 
-# Puerto
+# Puerto donde KiwiIRC escuchará
 EXPOSE 7778
 
-# Copiar script de arranque
+# Copiar script de arranque del add-on
 COPY run.sh /usr/bin/run.sh
 RUN chmod +x /usr/bin/run.sh
 
