@@ -18,10 +18,12 @@ if [ ! -f "${ZNC_CONFIG_FILE}" ]; then
     # Usamos znc --makepass con redirección de salida al archivo en el subdirectorio 'configs'
     echo "temporal_pass_ha" | znc --makepass --datadir "${ZNC_DIR}" > "${ZNC_CONFIG_FILE}"
     
+    # ⚠️ CORRECCIÓN DE SINTAXIS: Forzamos una línea en blanco y luego inyectamos el Listener Web.
+    echo "" >> "${ZNC_CONFIG_FILE}" 
+    
     # Paso Crucial: Añadir el Listener Web en el puerto 8888 al archivo generado
     echo "Añadiendo Listener web en el puerto 8888."
     cat >> "${ZNC_CONFIG_FILE}" << EOL
-    
 <Listener l>
     Port = 8888
     Host = 0.0.0.0
