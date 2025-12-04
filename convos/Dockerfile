@@ -5,14 +5,14 @@ ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
 # Instalamos Perl, sus utilidades (cpanminus) y las librerías necesarias
-# para compilar módulos (build-base, libssl-dev, etc.) usando APK.
+# para compilar módulos (build-base, openssl-dev, etc.) usando APK.
 RUN apk update && \
     apk add --no-cache \
         perl \
         perl-dev \
         build-base \
-        libssl-dev \
-        libpq-dev \
+        openssl-dev \
+        postgresql-dev \
         ca-certificates \
         curl \
         jq \
