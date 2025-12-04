@@ -1,16 +1,31 @@
-FROM alpine:3.19
+FROM debian:stable-slim
 
-RUN apk add --no-cache nginx git ca-certificates && \
-    update-ca-certificates
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN mkdir -p /run/nginx /var/www
+# Instalar Node.js, npm, git y utilidades básicas
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        nodejs \
+        npm \
+        git \
+        jq \
+        ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Clonar Glowing Bear (frontend)
-RUN git clone --depth 1 https://github.com/glowing-bear/glowing-bear.git /var/www/glowingbear && \
-    chmod -R 755 /var/www/glowingbear
+# Clonar el repositorio de Glowing Bear
+RUN git clone https://github.com/glowing-bear/glowing-bear.git /usr/src/glowing_bear
 
-COPY nginx.conf /etc/nginx/nginx.conf
+# Instalar las dependencias de Node.js
+WORKDIR /usr/src/glowing_bear
+RUN npm install
 
-EXPOSE 80
+# Copiar el script de ejecución del addon
+COPY run.sh /run.sh
 
-CMD ["nginx", "-g", "daemon off;"]
+RUN chmod +x /run.sh
+
+# El cliente web Glowing Bear se ejecuta por defecto en el puerto 3000
+EXPOSE 3000
+
+CMD ["/run.sh"]
