@@ -8,46 +8,42 @@ ZNC_DIR=/config/znc
 ZNC_CONFIG_FILE="${ZNC_DIR}/configs/znc.conf"
 mkdir -p "${ZNC_DIR}/configs"
 
+# ⚠️ PASO CRUCIAL: Limpiar la configuración antigua.
+if [ -f "${ZNC_CONFIG_FILE}" ]; then
+    echo "¡ADVERTENCIA! Eliminando configuración existente para forzar re-creación..."
+    rm "${ZNC_CONFIG_FILE}"
+fi
+
 # 2. Configuración inicial: Solo si znc.conf NO existe
 if [ ! -f "${ZNC_CONFIG_FILE}" ]; then
-    echo "Configurando ZNC por primera vez en ${ZNC_DIR}."
-    echo "Generando configuración mínima requerida y segura."
+    echo "Iniciando ZNC en modo de configuración para crear el archivo."
+    echo "Este comando debe FALLAR INTENCIONALMENTE después de crear el archivo."
     
-    # ⚠️ CORRECCIÓN CLAVE: Usamos 'strings' para eliminar todos los caracteres de control y nulos
-    # de la salida del hash, eliminando la causa del error 'Malformed line'.
-    ZNC_HASH=$(printf 'temporal_pass_ha\ntemporal_pass_ha\n' | znc --makepass | strings)
+    # ⚠️ Forzamos el modo de configuración inicial de ZNC.
+    # El comando -d (datadir) con --makeconf (no documentado) crea el archivo si no existe.
+    znc --makeconf --datadir "${ZNC_DIR}"
     
-    # 2. Escribimos el archivo de configuración completo.
-    echo "Escribiendo archivo de configuración en ${ZNC_CONFIG_FILE}"
+    # ⚠️ IMPORTANTE: Añadir un pequeño retraso para asegurar que el archivo se escribe.
+    sleep 2
     
-    echo "Version = 1.8.2" > "${ZNC_CONFIG_FILE}"
-    echo "MaxUsers = 1" >> "${ZNC_CONFIG_FILE}"
-    echo "ProtectWebSessions = true" >> "${ZNC_CONFIG_FILE}"
-    echo "" >> "${ZNC_CONFIG_FILE}"
-    
-    # Configuración del Listener Web (Puerto 8888)
-    echo "<Listener l>" >> "${ZNC_CONFIG_FILE}"
-    echo "    Port = 8888" >> "${ZNC_CONFIG_FILE}"
-    echo "    Host = 0.0.0.0" >> "${ZNC_CONFIG_FILE}"
-    echo "    SSL = false" >> "${ZNC_CONFIG_FILE}"
-    echo "</Listener>" >> "${ZNC_CONFIG_FILE}"
-    echo "" >> "${ZNC_CONFIG_FILE}"
-    
-    # Configuración del Usuario Inicial
-    echo "<User user>" >> "${ZNC_CONFIG_FILE}"
-    echo "    Password = ${ZNC_HASH}" >> "${ZNC_CONFIG_FILE}"
-    echo "    Admin = true" >> "${ZNC_CONFIG_FILE}"
-    echo "    Nick = ZNCUser" >> "${ZNC_CONFIG_FILE}"
-    echo "    AltNick = ZNCUser_" >> "${ZNC_CONFIG_FILE}"
-    echo "    Ident = ZNCUser" >> "${ZNC_CONFIG_FILE}"
-    echo "    RealName = ZNC Home Assistant User" >> "${ZNC_CONFIG_FILE}"
-    echo "</User>" >> "${ZNC_CONFIG_FILE}"
-    
-    echo "Configuración inicial terminada. Usuario por defecto: user / Contraseña: temporal_pass_ha"
+    # Después de este paso, znc.conf debería existir, pero probablemente necesite un Listener.
+    if [ -f "${ZNC_CONFIG_FILE}" ]; then
+        echo "Archivo znc.conf creado. Inyectando Listener web en el puerto 8888."
+        
+        # ⚠️ Ya que el archivo fue creado por ZNC, la sintaxis de inyección de texto
+        # es más segura (usamos una línea en blanco para mayor seguridad).
+        
+        echo "" >> "${ZNC_CONFIG_FILE}"
+        cat >> "${ZNC_CONFIG_FILE}" << EOL
+<Listener l>
+    Port = 8888
+    Host = 0.0.0.0
+    SSL = false
+</Listener>
+EOL
+    fi
 fi
 
 # 3. Iniciar ZNC
-echo "Lanzando ZNC. Los datos están en ${ZNC_DIR}."
-
-# Quitamos el flag -r y confiamos en la configuración válida.
+echo "Lanzando ZNC en modo Daemon."
 exec znc -d "${ZNC_DIR}" -f
