@@ -1,5 +1,5 @@
 name: Kiwi IRC Web Client
-version: "1.0.0"
+version: "1.0.1"
 slug: kiwiirc_webclient
 description: "Web IRC client for ZNC"
 arch:
