@@ -9,44 +9,45 @@ ZNC_CONFIG_FILE="${ZNC_DIR}/configs/znc.conf"
 # Aseguramos la existencia de los directorios
 mkdir -p "${ZNC_DIR}/configs"
 
-# 2. Configuración inicial: Solo si znc.conf NO existe en la ruta correcta
+# 2. Configuración inicial: Solo si znc.conf NO existe
 if [ ! -f "${ZNC_CONFIG_FILE}" ]; then
     echo "Configurando ZNC por primera vez en ${ZNC_DIR}."
-    echo "Generando configuración mínima requerida en la ruta correcta."
+    echo "Generando configuración mínima requerida y segura."
     
-    # ⚠️ CORRECCIÓN CLAVE: Usamos printf para evitar caracteres ocultos en la entrada de ZNC --makepass.
-    # El comando tr -d '\n' asegura que el hash no tenga saltos de línea finales.
-    ZNC_HASH=$(printf 'temporal_pass_ha\ntemporal_pass_ha' | znc --makepass | tr -d '\n')
+    # ⚠️ 1. Generamos el hash de la contraseña de forma limpia.
+    # Usamos printf y strip (tr) para garantizar que el hash sea una sola línea de texto limpio.
+    ZNC_HASH=$(printf 'temporal_pass_ha\ntemporal_pass_ha\n' | znc --makepass | tr -d '\n')
     
-    # 2. Creamos el archivo de configuración completo con el hash y el Listener web.
-    cat > "${ZNC_CONFIG_FILE}" << EOL
-Version = 1.8.2
-MaxUsers = 1
-ProtectWebSessions = true
-
-<Listener l>
-    Port = 8888
-    Host = 0.0.0.0
-    SSL = false
-</Listener>
-
-<User user>
-    Password = ${ZNC_HASH}
-    Admin = true
-    Nick = ZNCUser
-    AltNick = ZNCUser_
-    Ident = ZNCUser
-    RealName = ZNC Home Assistant User
+    # ⚠️ 2. Escribimos todo el archivo de configuración de forma limpia.
+    # Este formato es la sintaxis más simple y menos propensa a errores de línea.
     
-    <Network ha>
-        Nick = HAUser
-        AltNick = HAUser_
-        Ident = HAUser
-        RealName = HA User
-    </Network>
-</User>
-EOL
-
+    echo "Escribiendo archivo de configuración en ${ZNC_CONFIG_FILE}"
+    
+    # Usamos echo para cada línea, asegurando saltos de línea.
+    
+    echo "Version = 1.8.2" > "${ZNC_CONFIG_FILE}"
+    echo "MaxUsers = 1" >> "${ZNC_CONFIG_FILE}"
+    echo "ProtectWebSessions = true" >> "${ZNC_CONFIG_FILE}"
+    echo "" >> "${ZNC_CONFIG_FILE}" # Línea en blanco para separar
+    
+    # Configuración del Listener Web (Puerto 8888)
+    echo "<Listener l>" >> "${ZNC_CONFIG_FILE}"
+    echo "    Port = 8888" >> "${ZNC_CONFIG_FILE}"
+    echo "    Host = 0.0.0.0" >> "${ZNC_CONFIG_FILE}"
+    echo "    SSL = false" >> "${ZNC_CONFIG_FILE}"
+    echo "</Listener>" >> "${ZNC_CONFIG_FILE}"
+    echo "" >> "${ZNC_CONFIG_FILE}" # Línea en blanco
+    
+    # Configuración del Usuario Inicial
+    echo "<User user>" >> "${ZNC_CONFIG_FILE}"
+    echo "    Password = ${ZNC_HASH}" >> "${ZNC_CONFIG_FILE}"
+    echo "    Admin = true" >> "${ZNC_CONFIG_FILE}"
+    echo "    Nick = ZNCUser" >> "${ZNC_CONFIG_FILE}"
+    echo "    AltNick = ZNCUser_" >> "${ZNC_CONFIG_FILE}"
+    echo "    Ident = ZNCUser" >> "${ZNC_CONFIG_FILE}"
+    echo "    RealName = ZNC Home Assistant User" >> "${ZNC_CONFIG_FILE}"
+    echo "</User>" >> "${ZNC_CONFIG_FILE}"
+    
     echo "Configuración inicial terminada. Usuario por defecto: user / Contraseña: temporal_pass_ha"
 fi
 
