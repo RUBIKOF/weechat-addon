@@ -17,11 +17,17 @@ RUN apk update && \
         curl \
         jq \
         perl-app-cpanminus \
+    # Limpieza inicial de caché
+    && rm -rf /var/cache/apk/* \
+    # -----------------------------------------------------------
+    # ⚠️ PASO CRUCIAL: Reinstalamos y actualizamos cpanm a sí mismo.
+    # Esto asegura que cpanm tenga las dependencias de red correctas.
+    && cpanm App::cpanminus \
     # Instalamos Convos con cpanminus usando el nombre correcto: App::Convos
     && cpanm --notest App::Convos \
-    # Limpieza
-    && rm -rf /var/cache/apk/* /root/.cpanm /root/.cpan
-
+    # Limpieza final
+    && rm -rf /root/.cpanm /root/.cpan
+    
 # Puerto por defecto de Convos
 EXPOSE 8080
 
