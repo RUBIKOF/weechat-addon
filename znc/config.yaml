@@ -1,5 +1,5 @@
 name: ZNC IRC Bouncer
-version: "1.0.2" # Nueva versión para reflejar las correcciones
+version: "1.0.3" # Nueva versión para reflejar las correcciones
 slug: znc_irc_bouncer
 description: "An advanced IRC bouncer, allowing you to stay connected to IRC networks."
 arch:
