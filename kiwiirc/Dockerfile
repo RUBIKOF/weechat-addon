@@ -1,7 +1,8 @@
-ARG BUILD_FROM
+# Forzamos explícitamente la base Debian de Home Assistant
+ARG BUILD_FROM=ghcr.io/home-assistant/{ARCH}-base-debian:latest
 FROM ${BUILD_FROM}
 
-# Evitar prompts interactivos
+# Evitamos prompts interactivos
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Paquetes base: node, npm, git, certificados, etc.
@@ -27,7 +28,7 @@ RUN git clone https://github.com/kiwiirc/kiwiirc.git ${KIWIIRC_HOME} && \
 # Puerto por donde exponemos KiwiIRC
 EXPOSE 7778
 
-# Copiamos el script de arranque del add-on
+# Script de arranque del add-on
 COPY run.sh /usr/bin/run.sh
 RUN chmod +x /usr/bin/run.sh
 
