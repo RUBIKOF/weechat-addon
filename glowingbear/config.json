@@ -1,19 +1,21 @@
 {
-  "name": "Glowing Bear",
+  "name": "Glowing Bear Web Client",
   "version": "0.1.0",
-  "slug": "glowingbear",
-  "description": "Interfaz web para WeeChat (Glowing Bear)",
-  "url": "https://github.com/tuusuario/weechat-addon",
-  "arch": ["aarch64", "amd64", "armv7", "armhf", "i386"],
-  "startup": "services",
+  "slug": "glowing_bear_web",
+  "description": "Web client for WeeChat (Requires WeeChat server addon).",
+  "url": "https://github.com/RUBIKOF/weechat-addon",
+  "arch": ["aarch64", "amd64", "armv7", "i386"],
+  "startup": "application",
   "boot": "auto",
-  "host_network": false,
-  "ingress": true,
-  "ingress_port": 80,
-  "panel_icon": "mdi:chat-processing",
-  "panel_title": "Glowing Bear",
-  "options": {},
-  "schema": {},
-  "ports": {},
+  "host_network": true,
+  "options": {
+    "web_port": 3000
+  },
+  "schema": {
+    "web_port": "int"
+  },
+  "ports": {
+    "3000/tcp": 3000
+  },
   "apparmor": false
 }
