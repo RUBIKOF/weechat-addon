@@ -2,13 +2,14 @@
 echo "=== ZNC IRC Bouncer Starting ==="
 
 ZNC_DIR=/config/znc
-CONFIG_FILE="${ZNC_DIR}/znc.conf"
-LOG_FILE="${ZNC_DIR}/znc.log"
+CONFIGS_DIR="${ZNC_DIR}/configs"
+CONFIG_FILE="${CONFIGS_DIR}/znc.conf"
 
-# Crear directorio
-mkdir -p "${ZNC_DIR}"
+# Crear directorios necesarios
+mkdir -p "${CONFIGS_DIR}"
+mkdir -p "${ZNC_DIR}/modules"
 
-# Crear configuración SEGURA y FUNCIONAL
+# Crear configuración en la ruta CORRECTA
 cat > "${CONFIG_FILE}" << 'EOF'
 Version = 1.8.2
 LoadModule = webadmin
@@ -41,6 +42,6 @@ echo "  Usuario: admin"
 echo "  Contraseña: password"
 echo "  Web UI: http://[TU_IP_HA]:8888"
 
-# Permitir que ZNC corra como root (necesario en contenedores HA)
-echo "Iniciando ZNC (ignorando warning de root)..."
+# Iniciar ZNC
+echo "Iniciando ZNC..."
 exec znc --allow-root -d "${ZNC_DIR}" -f
