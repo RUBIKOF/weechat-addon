@@ -1,31 +1,27 @@
-# 1. Recibe el argumento inyectado desde config.yaml
+# 1. Recibe el argumento inyectado desde config.yaml (ahora Debian)
 ARG BUILD_FROM
 
 # 2. Usa la variable para definir la imagen base
 FROM ${BUILD_FROM}
 
 # Instalamos Perl, sus utilidades (cpanminus) y las librerías necesarias
-# para compilar módulos (build-base, openssl-dev, etc.) usando APK.
-RUN apk update && \
-    apk add --no-cache \
+# para compilar módulos (build-essential, libssl-dev, etc.) usando APT.
+# Usamos App::Convos para el nombre correcto.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
         perl \
-        perl-dev \
-        build-base \
-        openssl-dev \
-        postgresql-dev \
+        build-essential \
+        libssl-dev \
+        libpq-dev \
         ca-certificates \
         curl \
         jq \
-        perl-app-cpanminus \
-    # Limpieza inicial de caché
-    && rm -rf /var/cache/apk/* \
-    # -----------------------------------------------------------
-    # ⚠️ PASO CRUCIAL: Reinstalamos y actualizamos cpanm a sí mismo.
-    # Esto asegura que cpanm tenga las dependencias de red correctas.
-    && cpanm App::cpanminus \
+        cpanminus \
+    # Limpieza de caché de APT
+    && rm -rf /var/lib/apt/lists/* \
     # Instalamos Convos con cpanminus usando el nombre correcto: App::Convos
     && cpanm --notest App::Convos \
-    # Limpieza final
+    # Limpieza final de CPAN
     && rm -rf /root/.cpanm /root/.cpan
     
 # Puerto por defecto de Convos
