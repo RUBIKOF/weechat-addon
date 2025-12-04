@@ -6,7 +6,7 @@ arch:
   - aarch64
   - amd64
   - armv7
-url: "https://github.com/RUBIKOF/znc-addon" 
+url: "https://github.com/RUBIKOF/weechat-addon" 
 webui: http://[HOST]:[PORT:8888] # Usamos el puerto 8888 para la interfaz web (seguro)
 panel_icon: mdi:chat-processing
 ports:
