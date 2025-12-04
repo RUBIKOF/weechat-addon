@@ -1,5 +1,5 @@
 name: Convos IRC Web Bouncer
-version: "1.2.2" # 👈 ¡Incrementamos la versión!
+version: "1.2.3" # 👈 ¡Incrementamos la versión!
 slug: convos_irc_web
 description: "A self-hosted, always-on IRC web client (bouncer) with modern features."
 arch:
