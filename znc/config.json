@@ -1,34 +1,20 @@
-{
-  "name": "ZNC IRC Bouncer",
-  "version": "0.1.0",
-  "slug": "znc",
-  "description": "ZNC IRC bouncer for persistent IRC sessions",
-  "url": "https://znc.in/",
-  "arch": [
-    "aarch64",
-    "amd64",
-    "armv7"
-  ],
-  "startup": "services",
-  "boot": "auto",
-  "ingress": false,
-  "ports": {
-    "6501/tcp": 6501,
-    "6697/tcp": 6697
-  },
-  "ports_description": {
-    "6501/tcp": "ZNC web admin interface",
-    "6697/tcp": "ZNC IRC port"
-  },
-  "map": [
-    "config:rw"
-  ],
-  "environment": {
-    "TZ": "America/Mexico_City",
-    "PUID": "0",
-    "PGID": "0"
-  },
-  "options": {},
-  "schema": {},
-  "image": "lscr.io/linuxserver/znc:latest"
-}
+name: ZNC IRC Bouncer
+version: "1.0.0" # Empezamos una nueva versión
+slug: znc_irc_bouncer
+description: "An advanced IRC bouncer, allowing you to stay connected to IRC networks."
+arch:
+  - aarch64
+  - amd64
+  - armv7
+url: "https://github.com/RUBIKOF/weechat-addon" # Cambia la URL del repositorio
+webui: http://[HOST]:[PORT:6667] # El puerto web por defecto de ZNC suele ser el puerto IRC o un puerto dedicado (6667 es común para el acceso).
+panel_icon: mdi:chat-processing
+ports:
+  6667/tcp: 6667 # Puerto por defecto para la interfaz web y la conexión IRC
+schema:
+  log_level: list(trace|debug|info|warning|error|fatal)?
+# ... (Puedes añadir más opciones de configuración después si es necesario)
+build:
+  args:
+    # Usamos la base de Debian para instalar ZNC con apt-get
+    BUILD_FROM: "ghcr.io/home-assistant/{ARCH}-base-debian:latest"
