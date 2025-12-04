@@ -1,6 +1,5 @@
 FROM debian:stable-slim
 
-# Instalar dependencias
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         wget \
@@ -9,7 +8,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Descargar e instalar Kiwi IRC para la arquitectura correspondiente
+# Descargar y EXTRAER manualmente el .deb
 ARG TARGETARCH
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
         KIWI_URL="https://kiwiirc.com/downloads/kiwiirc_20.05.24.1-1_amd64.deb"; \
@@ -21,12 +20,11 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
         echo "Arquitectura no soportada: $TARGETARCH" && exit 1; \
     fi && \
     wget -O /tmp/kiwiirc.deb "$KIWI_URL" && \
-    dpkg -i /tmp/kiwiirc.deb || apt-get install -f -y && \
-    rm /tmp/kiwiirc.deb
-
-# Enlazar Kiwi IRC al directorio web de nginx
-RUN rm -rf /var/www/html && \
-    ln -s /usr/share/kiwiirc /var/www/html
+    # Extraer solo los archivos, sin instalar
+    dpkg-deb -x /tmp/kiwiirc.deb /tmp/kiwiirc-extract && \
+    # Mover los archivos a donde deben ir
+    mv /tmp/kiwiirc-extract/usr/share/kiwiirc /var/www/html && \
+    rm -rf /tmp/kiwiirc.deb /tmp/kiwiirc-extract
 
 EXPOSE 8080
 
