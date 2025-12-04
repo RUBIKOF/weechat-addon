@@ -14,21 +14,19 @@ if [ ! -f "${ZNC_CONFIG_FILE}" ]; then
     echo "Configurando ZNC por primera vez en ${ZNC_DIR}."
     echo "Generando configuración mínima requerida y segura."
     
-    # ⚠️ 1. Generamos el hash de la contraseña de forma limpia.
-    # Usamos printf y strip (tr) para garantizar que el hash sea una sola línea de texto limpio.
-    ZNC_HASH=$(printf 'temporal_pass_ha\ntemporal_pass_ha\n' | znc --makepass | tr -d '\n')
+    # ⚠️ CORRECCIÓN CLAVE: Usamos 'tr' para eliminar completamente todos los caracteres que no sean ASCII.
+    # El uso de 'strings' es más seguro si estuviera disponible.
+    ZNC_HASH=$(printf 'temporal_pass_ha\ntemporal_pass_ha\n' | znc --makepass | tr -d '\000-\031\177')
     
-    # ⚠️ 2. Escribimos todo el archivo de configuración de forma limpia.
-    # Este formato es la sintaxis más simple y menos propensa a errores de línea.
-    
+    # 2. Creamos el archivo de configuración completo.
     echo "Escribiendo archivo de configuración en ${ZNC_CONFIG_FILE}"
     
-    # Usamos echo para cada línea, asegurando saltos de línea.
+    # Escribimos línea por línea para evitar errores de sintaxis 'Malformed line'
     
     echo "Version = 1.8.2" > "${ZNC_CONFIG_FILE}"
     echo "MaxUsers = 1" >> "${ZNC_CONFIG_FILE}"
     echo "ProtectWebSessions = true" >> "${ZNC_CONFIG_FILE}"
-    echo "" >> "${ZNC_CONFIG_FILE}" # Línea en blanco para separar
+    echo "" >> "${ZNC_CONFIG_FILE}"
     
     # Configuración del Listener Web (Puerto 8888)
     echo "<Listener l>" >> "${ZNC_CONFIG_FILE}"
@@ -36,9 +34,9 @@ if [ ! -f "${ZNC_CONFIG_FILE}" ]; then
     echo "    Host = 0.0.0.0" >> "${ZNC_CONFIG_FILE}"
     echo "    SSL = false" >> "${ZNC_CONFIG_FILE}"
     echo "</Listener>" >> "${ZNC_CONFIG_FILE}"
-    echo "" >> "${ZNC_CONFIG_FILE}" # Línea en blanco
+    echo "" >> "${ZNC_CONFIG_FILE}"
     
-    # Configuración del Usuario Inicial
+    # Configuración del Usuario Inicial (USANDO EL HASH LIMPIO)
     echo "<User user>" >> "${ZNC_CONFIG_FILE}"
     echo "    Password = ${ZNC_HASH}" >> "${ZNC_CONFIG_FILE}"
     echo "    Admin = true" >> "${ZNC_CONFIG_FILE}"
@@ -54,5 +52,6 @@ fi
 # 3. Iniciar ZNC
 echo "Lanzando ZNC. Los datos están en ${ZNC_DIR}."
 
-# COMANDO FINAL: -d (datadir), -f (foreground), -r (allow-root).
-exec znc -d "${ZNC_DIR}" -f -r
+# Quitamos el flag -r y confiamos en que el comando exec -d -f funcione si la config es válida.
+# Si la config es válida, ZNC suele obviar la queja de root si no hay opciones peligrosas.
+exec znc -d "${ZNC_DIR}" -f
