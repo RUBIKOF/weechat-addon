@@ -1,6 +1,6 @@
-name: ZNC IRC Bouncer
+name: "ZNC IRC Bouncer"
 version: "1.0.6"
-slug: znc_irc_bouncer
+slug: "znc_irc_bouncer"
 description: "Advanced IRC bouncer with web interface"
 arch:
   - aarch64
@@ -8,7 +8,7 @@ arch:
   - armhf
   - armv7
   - i386
-url: https://github.com/RUBIKOF/weechat-addon
+url: "https://github.com/RUBIKOF/weechat-addon"
 startup: services
 boot: manual
 ports:
