@@ -4,7 +4,7 @@ ARG BUILD_FROM
 # Usamos la base de Debian-Slim para la instalación de ZNC con apt-get
 FROM debian:stable-slim
 
-# Instalamos ZNC y las herramientas esenciales (incluyendo 'strings' de binutils).
+# ⚠️ CORRECCIÓN CLAVE: Instalamos 'binutils' que contiene el comando 'strings'.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         znc \
@@ -12,7 +12,6 @@ RUN apt-get update && \
         jq \
         curl \
         binutils && \
-    # binutils contiene el comando 'strings'
     # Limpieza de caché
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
