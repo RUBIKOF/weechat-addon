@@ -25,7 +25,3 @@ map:
 
 schema:
   log_level: "list(trace|debug|info|warning|error|fatal)?"
-
-build:
-  args:
-    BUILD_FROM: "ghcr.io/home-assistant/{ARCH}-base-debian:latest"
