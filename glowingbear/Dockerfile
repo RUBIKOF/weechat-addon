@@ -2,10 +2,11 @@ FROM alpine:3.19
 
 RUN apk add --no-cache nginx git
 
-# Descarga Glowing Bear
 RUN git clone https://github.com/glowing-bear/glowing-bear.git /var/www/glowingbear
 
-# Copiamos config de nginx
+# 👇 FIX: Dar permisos correctos a nginx
+RUN chown -R nginx:nginx /var/www/glowingbear
+
 COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
