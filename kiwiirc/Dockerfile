@@ -1,22 +1,21 @@
 FROM nginx:alpine
 
-# Instalar dependencias para descargar y configurar
-RUN apk add --no-cache curl jq
+# Instalar wget para descargar
+RUN apk add --no-cache wget tar
 
-# Descargar Kiwi IRC
-RUN curl -L -o /tmp/kiwiirc.tar.gz \
-    https://github.com/kiwiirc/kiwiirc/releases/download/v2.1.0/kiwiirc.tar.gz \
+# Descargar Kiwi IRC v1.7.1 - ¡ESTE ENLACE SÍ EXISTE!
+RUN wget -O /tmp/kiwiirc.tar.gz \
+    "https://github.com/kiwiirc/kiwiirc/archive/refs/tags/v1.7.1.tar.gz" \
     && tar -xzf /tmp/kiwiirc.tar.gz -C /tmp \
-    && mv /tmp/kiwiirc-* /usr/share/nginx/html \
+    && ls -la /tmp/ \
+    && mv /tmp/kiwiirc-1.7.1 /usr/share/nginx/html \
     && rm /tmp/kiwiirc.tar.gz
 
-# Copiar configuración personalizada
-COPY config.json /usr/share/nginx/html/config.json
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY run.sh /run.sh
+# Verificar que se descargó correctamente
+RUN ls -la /usr/share/nginx/html/
 
-RUN chmod +x /run.sh
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 8080
 
-CMD ["/run.sh"]
+CMD ["nginx", "-g", "daemon off;"]
