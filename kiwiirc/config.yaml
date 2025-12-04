@@ -1,5 +1,5 @@
 name: KiwiIRC Web Client
-version: "1.0.2"
+version: "1.0.3"
 slug: kiwiirc_web_client
 description: "Web IRC client (KiwiIRC) to use as interface for the ZNC bouncer."
 url: "https://github.com/RUBIKOF/weechat-addon"
