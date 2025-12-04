@@ -1,7 +1,7 @@
 {
   "build_from": {
-    "aarch64": "nginx:alpine",
-    "amd64": "nginx:alpine",
-    "armv7": "nginx:alpine"
+    "aarch64": "node:18-alpine",
+    "amd64": "node:18-alpine", 
+    "armv7": "node:18-alpine"
   }
 }
