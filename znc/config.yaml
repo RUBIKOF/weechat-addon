@@ -1,20 +1,17 @@
 name: ZNC IRC Bouncer
-version: "1.0.0" # Empezamos una nueva versión
+version: "1.0.1" # Nueva versión para reflejar las correcciones
 slug: znc_irc_bouncer
 description: "An advanced IRC bouncer, allowing you to stay connected to IRC networks."
 arch:
   - aarch64
   - amd64
   - armv7
-url: "https://github.com/RUBIKOF/weechat-addon" # Cambia la URL del repositorio
-webui: http://[HOST]:[PORT:6667] # El puerto web por defecto de ZNC suele ser el puerto IRC o un puerto dedicado (6667 es común para el acceso).
+url: "https://github.com/RUBIKOF/znc-addon" 
+webui: http://[HOST]:[PORT:8888] # Usamos el puerto 8888 para la interfaz web (seguro)
 panel_icon: mdi:chat-processing
 ports:
-  6667/tcp: 6667 # Puerto por defecto para la interfaz web y la conexión IRC
+  6667/tcp: 6667 # Puerto por defecto para la conexión IRC/Bouncer (puerto inseguro para navegadores)
+  8888/tcp: 8888 # Nuevo puerto para la Interfaz Web de ZNC (Puerto seguro para navegadores)
 schema:
   log_level: list(trace|debug|info|warning|error|fatal)?
-# ... (Puedes añadir más opciones de configuración después si es necesario)
-build:
-  args:
-    # Usamos la base de Debian para instalar ZNC con apt-get
-    BUILD_FROM: "ghcr.io/home-assistant/{ARCH}-base-debian:latest"
+  
