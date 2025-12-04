@@ -1,5 +1,5 @@
 name: ZNC IRC Bouncer
-version: "1.0.6"
+version: "1.0.7"
 slug: znc_irc_bouncer
 description: "IRC bouncer with web interface"
 arch:
@@ -12,7 +12,13 @@ boot: manual
 ports:
   6667/tcp: 6667
   8888/tcp: 8888
+ports_description:
+  6667/tcp: "IRC Bouncer Port"
+  8888/tcp: "Web Interface Port"
 map:
   - config:rw
+  - ssl:ro
 panel_icon: mdi:chat-processing
 webui: http://[HOST]:[PORT:8888]
+host_network: false
+host_dbus: false
