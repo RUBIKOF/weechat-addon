@@ -1,24 +1,28 @@
 ARG BUILD_FROM
-
 FROM $BUILD_FROM
 
-# Instalar ZNC con soporte completo
-RUN apk add --no-cache \
-    znc \
-    znc-extra \
-    su-exec \
-    tini
+# Install ZNC
+RUN \
+    apk add --no-cache \
+        znc \
+        znc-extra \
+        su-exec
 
-# Crear usuario znc
-RUN adduser -S znc
+# Create znc user (if not exists)
+RUN \
+    if ! id znc >/dev/null 2>&1; then \
+        adduser -S -D -H -h /var/lib/znc znc; \
+    fi
 
-# Copiar el script de inicio
-COPY run.sh /usr/bin/run.sh
-RUN chmod +x /usr/bin/run.sh
+# Copy run script
+COPY run.sh /
+RUN chmod a+x /run.sh
 
-# Puertos de ZNC
-EXPOSE 6667 8888
+# Set up volumes
+VOLUME ["/config"]
 
-# Usar tini como init para mejor manejo de señales
-ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["/usr/bin/run.sh"]
+# Expose ports
+EXPOSE 6667
+EXPOSE 8888
+
+CMD [ "/run.sh" ]
