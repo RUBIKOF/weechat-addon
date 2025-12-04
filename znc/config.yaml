@@ -1,6 +1,6 @@
-name: "ZNC IRC Bouncer"
+name: ZNC IRC Bouncer
 version: "1.0.6"
-slug: "znc_irc_bouncer"
+slug: znc_irc_bouncer
 description: "Advanced IRC bouncer with web interface"
 arch:
   - aarch64
