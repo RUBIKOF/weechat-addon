@@ -7,16 +7,22 @@ echo "--- Inicia el Add-on de ZNC ---"
 ZNC_DIR=/config/znc
 CONFIG_FILE="${ZNC_DIR}/znc.conf"
 
-# Crear directorio si no existe
+# Crear directorios con permisos correctos
 mkdir -p "${ZNC_DIR}"
+chown znc:znc "${ZNC_DIR}"
+chmod 755 "${ZNC_DIR}"
 
 # Verificar si ya existe configuración
 if [ ! -f "${CONFIG_FILE}" ]; then
     echo "Creando configuración inicial..."
     
+    # Crear archivo como root primero
     cat > "${CONFIG_FILE}" << 'EOF'
 Version = 1.8.2
 LoadModule = webadmin
+SSLCertFile = /ssl/fullchain.pem
+SSLDHParamFile = /ssl/dhparams.pem
+SSLKeyFile = /ssl/privkey.pem
 
 <Listener irc>
     Port = 6667
@@ -39,6 +45,7 @@ LoadModule = webadmin
     AltNick = admin_
     Ident = admin
     RealName = ZNC Admin
+    Buffer = 50
     
     <Pass password>
         Method = sha256
@@ -51,12 +58,12 @@ EOF
     echo "Configuración creada en: ${CONFIG_FILE}"
     echo "Usuario: admin, Contraseña: password"
     echo "Accede a la interfaz web en: http://[TU_IP_HA]:8888"
+    
+    # Cambiar permisos del archivo de configuración
+    chown znc:znc "${CONFIG_FILE}"
+    chmod 644 "${CONFIG_FILE}"
 fi
 
-# Configurar permisos adecuados
-find "${ZNC_DIR}" -type d -exec chmod 755 {} \;
-find "${ZNC_DIR}" -type f -exec chmod 644 {} \;
-
-# Iniciar ZNC
-echo "Iniciando ZNC..."
-exec znc -d "${ZNC_DIR}" -f
+# Iniciar ZNC como usuario znc
+echo "Iniciando ZNC como usuario znc..."
+exec su-exec znc:znc znc -d "${ZNC_DIR}" -f
