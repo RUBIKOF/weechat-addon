@@ -1,7 +1,7 @@
 name: Convos IRC
 slug: convos
 version: "0.1.0"
-description: "Cliente web de IRC Convos dentro de Home Assistant."
+description: "Cliente web de IRC Convos integrado en Home Assistant."
 url: "https://convos.chat/"
 arch:
   - amd64
@@ -11,24 +11,21 @@ arch:
 startup: services
 boot: auto
 
-# Para que aparezca como panel lateral sin abrir puertos externos
 ingress: true
 ingress_port: 3000
 ingress_entry: /
 
 panel_icon: "mdi:chat-outline"
 panel_title: "Convos"
-panel_admin: true
 
-# Solo si quieres exponer también el puerto fuera de ingress:
-ports:
-  3000/tcp: null
-ports_description:
-  3000/tcp: "Interfaz web de Convos (desactivada si solo usas ingress)"
+# Variables configurables
+options:
+  invite_code: ""
+schema:
+  invite_code: "str?"
 
-# No necesitamos opciones todavía, así que lo dejamos vacío
-options: {}
-schema: {}
+# Directorios persistentes
+map:
+  - data:rw
 
-# Usamos directamente la imagen oficial de Convos
-image: "nordaaker/convos:latest"
+image: "local/convos-addon"
