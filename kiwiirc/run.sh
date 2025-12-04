@@ -1,20 +1,6 @@
-#!/bin/sh
-set -e
-
-echo "=== Kiwi IRC Web Client ==="
-
-# Configurar nginx para usar configuración dinámica si existe
-CONFIG_DIR="/config/kiwiirc"
-CUSTOM_CONFIG="${CONFIG_DIR}/config.json"
-
-if [ -f "${CUSTOM_CONFIG}" ]; then
-    echo "Usando configuración personalizada de ${CUSTOM_CONFIG}"
-    cp "${CUSTOM_CONFIG}" /usr/share/nginx/html/config.json
-fi
-
-echo "Web UI disponible en: http://[TU_IP]:8080"
+#!/bin/bash
+echo "=== Kiwi IRC 20.05.24.1 ==="
+echo "Instalado desde paquete .deb oficial"
+echo "Web UI: http://[TU_IP]:8080"
 echo "Conecta a ZNC en: localhost:6667"
-echo ""
-
-# Iniciar nginx
-exec nginx -g 'daemon off;'
+exec nginx -g "daemon off;"
