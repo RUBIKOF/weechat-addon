@@ -1,28 +1,24 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
-# Install ZNC
-RUN \
-    apk add --no-cache \
+# Instalar ZNC con apt (para debian)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
         znc \
-        znc-extra \
-        su-exec
+        ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Create znc user (if not exists)
-RUN \
-    if ! id znc >/dev/null 2>&1; then \
-        adduser -S -D -H -h /var/lib/znc znc; \
+# Crear usuario znc si no existe
+RUN if ! id znc >/dev/null 2>&1; then \
+        useradd -r -s /bin/false -d /var/lib/znc znc; \
     fi
 
-# Copy run script
+# Copiar el script de inicio
 COPY run.sh /
-RUN chmod a+x /run.sh
+RUN chmod +x /run.sh
 
-# Set up volumes
-VOLUME ["/config"]
+# Puertos
+EXPOSE 6667 8888
 
-# Expose ports
-EXPOSE 6667
-EXPOSE 8888
-
-CMD [ "/run.sh" ]
+CMD ["/run.sh"]
