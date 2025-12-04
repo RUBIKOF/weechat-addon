@@ -1,5 +1,5 @@
 name: ZNC IRC Bouncer
-version: "1.0.5"
+version: "1.0.6"
 slug: znc_irc_bouncer
 description: "Advanced IRC bouncer with web interface"
 arch:
@@ -8,23 +8,20 @@ arch:
   - armhf
   - armv7
   - i386
-init: false
 url: https://github.com/RUBIKOF/weechat-addon
-webui: http://[HOST]:[PORT:8888]
-panel_icon: mdi:chat-processing
+startup: services
+boot: manual
 ports:
   6667/tcp: 6667
   8888/tcp: 8888
 ports_description:
-  6667/tcp: "IRC bouncer port"
-  8888/tcp: "Web administration interface"
+  6667/tcp: "IRC Bouncer Port"
+  8888/tcp: "Web Admin Interface"
 map:
   - config:rw
-  - ssl:rw
+panel_icon: mdi:chat-processing
+webui: "[HOST]:[PORT:8888]"
 options:
-  ssl: false
-  znc_data: /config/znc
+  data_dir: /config/znc
 schema:
-  log_level: list(trace|debug|info|warning|error|fatal)?
-  ssl: bool?
-  znc_data: str?
+  data_dir: str?
