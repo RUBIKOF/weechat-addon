@@ -1,27 +1,33 @@
-name: KiwiIRC Web Client
-version: "1.0.4"
-slug: kiwiirc_web_client
-description: "Web IRC client (KiwiIRC) to use as interface for the ZNC bouncer."
-url: "https://github.com/RUBIKOF/weechat-addon"
-
+name: Kiwi IRC Web Client
+version: "1.0.0"
+slug: kiwiirc_webclient
+description: "Modern web IRC client that connects to ZNC bouncer"
 arch:
   - aarch64
   - amd64
   - armv7
-
 startup: services
-boot: auto
-
-panel_icon: mdi:chat-outline
-webui: "http://[HOST]:[PORT:7778]"
-
+boot: manual
 ports:
-  "7778/tcp": 7778
+  8080/tcp: 8080
 ports_description:
-  "7778/tcp": "KiwiIRC web interface"
-
+  8080/tcp: "Kiwi IRC Web Interface"
 map:
   - config:rw
-
+panel_icon: mdi:web
+webui: "http://[HOST]:[PORT:8080]"
+url: https://github.com/RUBIKOF/weechat-addon
+options:
+  znc_host: localhost
+  znc_port: 6667
+  znc_ssl: false
+  default_server: localhost
+  default_port: 6667
+  default_channel: "#homeassistant"
 schema:
-  log_level: "list(trace|debug|info|warning|error|fatal)?"
+  znc_host: str
+  znc_port: int
+  znc_ssl: bool
+  default_server: str
+  default_port: int
+  default_channel: str
