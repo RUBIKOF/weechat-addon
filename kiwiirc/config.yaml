@@ -1,0 +1,27 @@
+name: "KiwiIRC Web Client"
+slug: "kiwiirc"
+version: "0.1.0"
+description: "Cliente web IRC (KiwiIRC) integrado en Home Assistant."
+url: "https://github.com/kiwiirc/kiwiirc"
+arch:
+  - amd64
+  - aarch64
+  - armv7
+
+startup: services
+boot: auto
+
+ingress: true
+ingress_port: 7778
+ingress_entry: /
+
+panel_title: "KiwiIRC"
+panel_icon: "mdi:chat-outline"
+
+map:
+  - config:rw
+
+environment:
+  TZ: "America/Mexico_City"
+
+image: "lscr.io/linuxserver/kiwiirc:latest"
