@@ -1,44 +1,40 @@
 #!/bin/bash
 # Script de inicio para ZNC
 
-echo "--- Inicia la configuración del Add-on de ZNC ---"
+echo "--- Inicia el Add-on de ZNC ---"
 
 # 1. Definir la ruta de datos para la persistencia
 ZNC_DIR=/config/znc
 mkdir -p "${ZNC_DIR}"
 
-# 2. Configuración inicial
+# 2. Configuración inicial: Solo si znc.conf NO existe
 if [ ! -f "${ZNC_DIR}/znc.conf" ]; then
-    echo "Configurando ZNC por primera vez en ${ZNC_DIR}..."
-    echo "Generando configuración inicial para el puerto web 8888."
+    echo "Configurando ZNC por primera vez en ${ZNC_DIR}."
+    echo "Generando configuración mínima requerida."
     
-    # ⚠️ COMANDO CORREGIDO: Usamos el comando znc --makeconf para generar el archivo
-    # y lo forzamos a ser no interactivo (mediante una redirección de entrada)
-    # y establecemos la configuración básica de un Listener.
+    # ⚠️ COMANDO CORREGIDO: Usamos --makepass para crear un archivo znc.conf minimalista.
+    # Necesitamos pasar un password, aunque sea temporal. Lo canalizamos a la entrada.
+    # La salida la redirigimos a znc.conf.
     
-    # 1. Creamos la configuración por lotes para el Listener web seguro (8888)
-    # 2. Generamos una cuenta de usuario simple (user/pass) para que el usuario pueda iniciar sesión.
-    # 3. ZNC necesita que le "alimentemos" la entrada con Enter (echo)
+    # Esto genera un hash de una contraseña temporal y la guarda en znc.conf
+    echo "temporal_pass_ha" | znc --makepass --datadir "${ZNC_DIR}" > "${ZNC_DIR}/znc.conf"
     
-    # Este comando genera znc.conf sin interacción, asumiendo los valores por defecto
-    # y añade el Listener en 8888.
+    # ⚠️ Paso Crucial: Añadir el Listener Web en el puerto 8888 al archivo generado
+    echo "Añadiendo Listener web en el puerto 8888."
+    cat >> "${ZNC_DIR}/znc.conf" << EOL
     
-    (
-        echo "8888"   # 1. Puerto del Listener Web
-        echo "yes"    # 2. Habilitar SSL/TLS (si el add-on tuviera soporte) -> Por simplicidad, decimos "yes" o "no"
-        echo "no"     # 3. ¿IPv6?
-        echo "admin"  # 4. Nombre de usuario
-        echo "admin"  # 5. Contraseña
-        echo "admin"  # 6. Repetir Contraseña
-        echo "no"     # 7. Red por defecto
-        echo "yes"    # 8. Guardar configuración
-    ) | znc --makeconf --datadir "${ZNC_DIR}"
-    
-    echo "Configuración inicial terminada. Usuario/Contraseña por defecto: admin/admin"
+<Listener l>
+    Port = 8888
+    Host = 0.0.0.0
+    SSL = false
+    # Mantenemos el tipo por defecto (tapas, web, irc)
+</Listener>
+EOL
+
+    echo "Configuración inicial terminada. El usuario/contraseña debe configurarse en la web."
 fi
 
 # 3. Iniciar ZNC
 echo "Lanzando ZNC. Los datos están en ${ZNC_DIR}."
-# ⚠️ COMANDO CORREGIDO: -d para el directorio de datos, -f para primer plano.
-# ZNC ya está en la ruta, por lo que no es necesario el binario completo.
+# ⚠️ COMANDO FINAL: -d para el directorio de datos, -f para primer plano.
 exec znc -d "${ZNC_DIR}" -f
