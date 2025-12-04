@@ -1,20 +1,16 @@
-#!/bin/sh
-set -e
-
+#!/bin/bash
 echo "--- Inicia el Add-on de ZNC ---"
 
-# Directorio de configuración
-CONFIG_DIR="/config/znc"
-CONFIG_FILE="${CONFIG_DIR}/znc.conf"
+ZNC_DIR=/config/znc
+mkdir -p "${ZNC_DIR}"
 
-# Crear directorio
-mkdir -p "${CONFIG_DIR}"
+# SOLUCIÓN: Crear configuración DIRECTAMENTE sin usar --makeconf
+CONFIG_FILE="${ZNC_DIR}/znc.conf"
 
-# Crear configuración si no existe
 if [ ! -f "${CONFIG_FILE}" ]; then
-    echo "Creando configuración inicial..."
+    echo "Creando configuración automáticamente..."
     
-    # Crear archivo de configuración manualmente
+    # Crear configuración básica
     cat > "${CONFIG_FILE}" << 'EOF'
 Version = 1.8.2
 LoadModule = webadmin
@@ -39,7 +35,7 @@ LoadModule = webadmin
     Nick = admin
     AltNick = admin_
     Ident = admin
-    RealName = ZNC Administrator
+    RealName = ZNC Admin
     
     <Pass password>
         Method = sha256
@@ -49,12 +45,10 @@ LoadModule = webadmin
 </User>
 EOF
     
-    echo "✓ Configuración creada"
-    echo "  Usuario: admin"
-    echo "  Contraseña: password"
-    echo "  Web UI: http://[TU_IP]:8888"
+    echo "Configuración creada. Usuario: admin, Contraseña: password"
+    echo "Web UI: http://[TU_IP]:8888"
 fi
 
 # Iniciar ZNC
 echo "Iniciando ZNC..."
-exec znc -f -d "${CONFIG_DIR}"
+exec znc -f -d "${ZNC_DIR}"
