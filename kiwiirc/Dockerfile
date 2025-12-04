@@ -1,32 +1,27 @@
-# Imagen base LIMPIA, sin s6, sin HA: solo Alpine
-FROM alpine:3.20
+ARG BUILD_FROM
+FROM ${BUILD_FROM}
 
-# Evitar prompts innecesarios
-ENV TERM=xterm
-
-# Instalar dependencias con apk (Alpine)
+# Instalar Node.js y dependencias
 RUN apk add --no-cache \
-    ca-certificates \
-    curl \
-    git \
     nodejs \
     npm \
-    tzdata
+    git \
+    python3 \
+    make \
+    g++
 
-# Directorio de instalación de KiwiIRC
-ENV KIWIIRC_HOME=/opt/kiwiirc
+# Clonar y construir Kiwi IRC
+WORKDIR /app
+RUN git clone https://github.com/kiwiirc/kiwiirc.git . && \
+    npm install && \
+    npm run build && \
+    npm install -g serve
 
-# Clonar KiwiIRC desde GitHub (shallow clone para hacerlo más ligero)
-RUN git clone --depth=1 https://github.com/kiwiirc/kiwiirc.git ${KIWIIRC_HOME}
+# Copiar script de inicio
+COPY run.sh /
+RUN chmod +x /run.sh
 
-# Instalar dependencias de Node
-RUN cd ${KIWIIRC_HOME} && npm install --production
+# Puerto de Kiwi IRC
+EXPOSE 8080
 
-# Puerto donde KiwiIRC escuchará
-EXPOSE 7778
-
-# Copiar script de arranque del add-on
-COPY run.sh /usr/bin/run.sh
-RUN chmod +x /usr/bin/run.sh
-
-CMD [ "/usr/bin/run.sh" ]
+CMD [ "/run.sh" ]
