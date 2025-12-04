@@ -1,5 +1,5 @@
 name: Convos IRC Web Bouncer
-version: "1.2.0" # 👈 ¡Incrementamos la versión a 1.2.0 para forzar la actualización!
+version: "1.2.1" # 👈 ¡Incrementamos la versión!
 slug: convos_irc_web
 description: "A self-hosted, always-on IRC web client (bouncer) with modern features."
 arch:
@@ -15,9 +15,8 @@ schema:
   log_level: list(trace|debug|info|warning|error|fatal)?
   username: str
   password: str
-# --- SECCIÓN BUILD CORREGIDA PARA DEBIAN ---
 build:
   args:
-    # Usamos la imagen base de Debian de Home Assistant
+    # Mantenemos esta sección, pero el Dockerfile ahora usa una imagen directa.
     BUILD_FROM: "ghcr.io/home-assistant/{ARCH}-base-debian:latest"
     
