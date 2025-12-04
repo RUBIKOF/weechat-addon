@@ -1,16 +1,14 @@
-# --------------------------------------------------------------------------
-# ⚠️ CAMBIO CRUCIAL: Usamos la imagen base de Debian DIRECTAMENTE, 
-#                     sin depender de la inyección del argumento BUILD_FROM.
-# --------------------------------------------------------------------------
-FROM ghcr.io/home-assistant/aarch64-base-debian:latest
+# 1. Recibe el argumento inyectado desde config.yaml (ahora Debian-Build)
+ARG BUILD_FROM
 
-# Instalamos Perl, sus utilidades (cpanminus) y las librerías necesarias
-# para compilar módulos (build-essential, libssl-dev, etc.) usando APT.
-# Usamos App::Convos para el nombre correcto.
+# 2. Usa la variable para definir la imagen base
+FROM ${BUILD_FROM}
+
+# Instalamos Perl, sus utilidades (cpanminus) y las librerías necesarias.
+# build-essential ya está incluido en la imagen base.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         perl \
-        build-essential \
         libssl-dev \
         libpq-dev \
         ca-certificates \
