@@ -1,6 +1,6 @@
 name: Convos IRC
 slug: convos
-version: "0.1.3"
+version: "0.1.4"
 description: "Cliente web de IRC Convos integrado en Home Assistant."
 url: "https://convos.chat/"
 arch:
@@ -18,7 +18,6 @@ ingress_entry: /
 panel_icon: "mdi:chat-outline"
 panel_title: "Convos"
 
-# /data es persistente en HA
 map:
   - data:rw
 
