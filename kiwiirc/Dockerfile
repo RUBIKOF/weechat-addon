@@ -1,6 +1,6 @@
 FROM debian:stable-slim
 
-# 1. Instalar dependencias para construir
+# 1. Instalar dependencias para construir KiwiIRC
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         curl \
@@ -21,14 +21,16 @@ RUN git clone --branch v1.7.1 --depth 1 \
     npm install && \
     npm run build
 
-# 3. Instalar nginx para servir
+# 3. Instalar nginx para servir los archivos estáticos
 RUN apt-get update && \
     apt-get install -y --no-install-recommends nginx && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# 4. Mover archivos construidos
-RUN mv /app/dist /var/www/html && \
+# 4. Copiar archivos construidos a /var/www/html (sin subcarpeta dist)
+RUN mkdir -p /var/www/html && \
+    cp -r /app/dist/* /var/www/html/ && \
+    chown -R www-data:www-data /var/www/html && \
     rm -rf /app
 
 EXPOSE 8080
