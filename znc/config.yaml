@@ -1,5 +1,5 @@
 name: ZNC IRC Bouncer
-version: "1.0.11"
+version: "1.0.12"
 slug: znc_irc_bouncer
 description: "ZNC IRC bouncer with web interface"
 arch:
