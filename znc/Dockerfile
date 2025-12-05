@@ -1,6 +1,6 @@
 # Dockerfile para ZNC con módulos completos (incluyendo clientaway)
 
-ARG BUILD_FROM=debian:stable-slim
+ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -35,7 +35,7 @@ RUN mkdir -p /tmp/znc-build && \
 # 3. Puertos que expondrá el contenedor
 EXPOSE 6667 8888
 
-# 4. Script de arranque (ya lo tienes creado)
+# 4. Script de arranque
 COPY run.sh /usr/bin/run.sh
 RUN chmod +x /usr/bin/run.sh
 
