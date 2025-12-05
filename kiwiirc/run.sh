@@ -22,7 +22,7 @@ mkdir -p "${WEB_ROOT}/static"
 # 3. Definir un config.json MÍNIMO válido
 CONFIG_JSON='{}'
 
-# Escribirlo también en disco (no es obligatorio, pero no estorba)
+# Escribirlo también en disco (por si acaso)
 echo "${CONFIG_JSON}" > "${WEB_ROOT}/config.json"
 echo "${CONFIG_JSON}" > "${WEB_ROOT}/static/config.json"
 echo "✓ config.json escrito en ${WEB_ROOT} y ${WEB_ROOT}/static"
@@ -41,9 +41,8 @@ server {
 
     # Rutas normales de la SPA
     location / {
-        # Si el cliente está pidiendo JSON (como el config de Kiwi),
-        # devolvemos siempre un JSON mínimo y válido
-        if (\$http_accept ~* "application/json") {
+        # CUALQUIER petición a un .json → devolvemos siempre JSON mínimo
+        if (\$uri ~* "\\.json\$") {
             return 200 '${CONFIG_JSON}';
         }
 
