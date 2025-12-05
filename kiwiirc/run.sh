@@ -41,9 +41,9 @@ server {
 
     # Rutas normales de la SPA
     location / {
-        # Si la URL contiene "config" en el path → devolvemos siempre JSON
-        if (\$uri ~* "config") {
-            default_type application/json;
+        # Si el cliente está pidiendo JSON (como el config de Kiwi),
+        # devolvemos siempre un JSON mínimo y válido
+        if (\$http_accept ~* "application/json") {
             return 200 '${CONFIG_JSON}';
         }
 
