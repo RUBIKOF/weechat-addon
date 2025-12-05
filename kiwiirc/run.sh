@@ -1,24 +1,43 @@
 #!/bin/bash
-echo "=== Kiwi IRC Reinstalación ==="
+echo "=== Kiwi IRC v1.7.1 ==="
 
-# 1. Eliminar todo
-rm -rf /var/www/html/* /usr/share/kiwiirc
+# Ir al directorio construido
+cd /var/www/html
 
-# 2. Reinstalar Kiwi IRC
-wget -O /tmp/kiwiirc.deb \
-    "https://kiwiirc.com/downloads/kiwiirc_20.05.24.1-1_arm64.deb" && \
-dpkg-deb -x /tmp/kiwiirc.deb /tmp/kiwi && \
-mv /tmp/kiwi/usr/share/kiwiirc /var/www/html/ && \
-rm -rf /tmp/kiwiirc.deb /tmp/kiwi
+# Crear config.json VÁLIDO
+cat > config.json << 'EOF'
+{
+    "windowTitle": "Kiwi IRC - Home Assistant",
+    "startupScreen": "welcome",
+    "restricted": false,
+    "theme": "default",
+    "startupOptions": {
+        "server": "localhost",
+        "port": 6667,
+        "channel": "#homeassistant",
+        "nick": "ha-${random}",
+        "ssl": false,
+        "autoconnect": false
+    }
+}
+EOF
 
-# 3. Ir al directorio correcto
-cd /var/www/html/kiwiirc
+# Configurar nginx
+cat > /etc/nginx/conf.d/default.conf << 'EOF'
+server {
+    listen 8080;
+    server_name _;
+    root /var/www/html;
+    index index.html;
+    
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+EOF
 
-# 4. Configuración mínima
-echo "{}" > config.json
+echo "✅ Kiwi IRC construido desde fuente"
+echo "🌐 http://[TU_IP]:8080"
+echo "🔌 Conecta a: localhost:6667"
 
-# 5. nginx
-echo 'server { listen 8080; root /var/www/html/kiwiirc; location / { try_files $uri $uri/ /index.html; } }' > /etc/nginx/conf.d/default.conf
-
-echo "Kiwi IRC reinstalado"
 exec nginx -g "daemon off;"
