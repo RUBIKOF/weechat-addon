@@ -16,15 +16,19 @@ else
     echo "✓ index.html encontrado en ${WEB_ROOT}"
 fi
 
-# 2. Crear config.json vacío si no existe
-if [ ! -f "${WEB_ROOT}/config.json" ]; then
-    echo "{}" > "${WEB_ROOT}/config.json"
-    echo "✓ config.json creado (vacío) en ${WEB_ROOT}"
-else
-    echo "✓ config.json ya existe en ${WEB_ROOT}"
-fi
+# 2. Asegurar carpeta static (algunos builds buscan /static/config.json)
+mkdir -p "${WEB_ROOT}/static"
 
-# 3. Configurar nginx para servir desde WEB_ROOT
+# 3. Definir un config.json MÍNIMO válido
+#    Por ahora es un JSON vacío; luego lo cambiamos por uno apuntando a tu ZNC
+CONFIG_JSON='{}'
+
+# (Opcional) escribirlo también en el filesystem, por si alguna vez decides servirlo como archivo
+echo "${CONFIG_JSON}" > "${WEB_ROOT}/config.json"
+echo "${CONFIG_JSON}" > "${WEB_ROOT}/static/config.json"
+echo "✓ config.json escrito en ${WEB_ROOT} y ${WEB_ROOT}/static"
+
+# 4. Configurar nginx
 cat > /etc/nginx/conf.d/default.conf << EOF
 server {
     listen 8080;
@@ -32,14 +36,21 @@ server {
     root ${WEB_ROOT};
     index index.html;
 
+    # Rutas normales: app SPA
     location / {
         try_files \$uri \$uri/ /index.html;
     }
 
-    # Forzar JSON para config.json
+    # Kiwi suele pedir /config.json
     location = /config.json {
-        add_header Content-Type application/json;
-        try_files /config.json =404;
+        default_type application/json;
+        return 200 '${CONFIG_JSON}';
+    }
+
+    # Algunas builds usan /static/config.json
+    location = /static/config.json {
+        default_type application/json;
+        return 200 '${CONFIG_JSON}';
     }
 }
 EOF
