@@ -1,13 +1,17 @@
 #!/bin/bash
+set -e
 echo "=== Kiwi IRC v1.7.1 ==="
 
-# Ir al directorio construido
-cd /var/www/html
+# 1. Verificar estructura y permisos
+echo "Verificando permisos..."
+ls -la /var/www/html/
+stat /var/www/html/index.html
 
-# Crear config.json VÁLIDO
+# 2. Crear config.json
+cd /var/www/html
 cat > config.json << 'EOF'
 {
-    "windowTitle": "Kiwi IRC - Home Assistant",
+    "windowTitle": "Kiwi IRC - HA",
     "startupScreen": "welcome",
     "restricted": false,
     "theme": "default",
@@ -22,7 +26,11 @@ cat > config.json << 'EOF'
 }
 EOF
 
-# Configurar nginx
+# 3. Asegurar permisos de config.json
+chown www-data:www-data config.json
+chmod 644 config.json
+
+# 4. Configurar nginx CON usuario correcto
 cat > /etc/nginx/conf.d/default.conf << 'EOF'
 server {
     listen 8080;
@@ -30,14 +38,8 @@ server {
     root /var/www/html;
     index index.html;
     
+    # Usuario/grupo que coincide con permisos
+    user www-data www-data;
+    
     location / {
         try_files $uri $uri/ /index.html;
-    }
-}
-EOF
-
-echo "✅ Kiwi IRC construido desde fuente"
-echo "🌐 http://[TU_IP]:8080"
-echo "🔌 Conecta a: localhost:6667"
-
-exec nginx -g "daemon off;"
