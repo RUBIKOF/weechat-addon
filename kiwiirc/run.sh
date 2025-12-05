@@ -1,51 +1,41 @@
 #!/bin/bash
 set -e
-echo "=== Kiwi IRC Debug ==="
 
-# 1. Encontrar DÓNDE está realmente Kiwi IRC
-echo "Buscando Kiwi IRC..."
-find /var/www -name "index.html" -type f | head -5
+echo "=== Kiwi IRC Add-on ==="
 
-# 2. Ir al directorio correcto
-if [ -d "/var/www/html/kiwiirc" ]; then
-    cd "/var/www/html/kiwiirc"
-    echo "✓ Usando /var/www/html/kiwiirc"
-elif [ -d "/usr/share/kiwiirc" ]; then
-    cd "/usr/share/kiwiirc"
-    echo "✓ Usando /usr/share/kiwiirc"
+WEB_ROOT="/var/www/html"
+
+echo "Verificando contenido en ${WEB_ROOT}..."
+ls -la "${WEB_ROOT}"
+
+# 1. Verificar que exista el index.html de KiwiIRC
+if [ ! -f "${WEB_ROOT}/index.html" ]; then
+    echo "ERROR: No se encontró index.html de KiwiIRC en ${WEB_ROOT}"
+    echo "<h1>Kiwi IRC Error</h1><p>No se encontró index.html.</p>" > "${WEB_ROOT}/index.html"
 else
-    cd "/var/www/html"
-    echo "✓ Usando /var/www/html"
+    echo "✓ index.html encontrado en ${WEB_ROOT}"
 fi
 
-# 3. ELIMINAR cualquier config.json corrupto
-echo "Limpiando configuraciones previas..."
-rm -f config.json config.js *.html 2>/dev/null || true
-
-# 4. Crear config.json VACÍO y válido
-echo "{}" > config.json
-echo "✓ Config.json creado (vacío)"
-
-# 5. Verificar que tenemos index.html
-if [ ! -f "index.html" ]; then
-    echo "ERROR: No hay index.html en $(pwd)"
-    ls -la
-    echo "<h1>Kiwi IRC Error</h1>" > index.html
+# 2. Crear config.json vacío si no existe
+if [ ! -f "${WEB_ROOT}/config.json" ]; then
+    echo "{}" > "${WEB_ROOT}/config.json"
+    echo "✓ config.json creado (vacío) en ${WEB_ROOT}"
+else
+    echo "✓ config.json ya existe en ${WEB_ROOT}"
 fi
 
-# 6. Configurar nginx para servir desde ESTE directorio
-NGINX_ROOT=$(pwd)
+# 3. Configurar nginx para servir desde WEB_ROOT
 cat > /etc/nginx/conf.d/default.conf << EOF
 server {
     listen 8080;
     server_name _;
-    root $NGINX_ROOT;
+    root ${WEB_ROOT};
     index index.html;
-    
+
     location / {
         try_files \$uri \$uri/ /index.html;
     }
-    
+
     # Forzar JSON para config.json
     location = /config.json {
         add_header Content-Type application/json;
@@ -54,18 +44,11 @@ server {
 }
 EOF
 
-# 7. Verificar
-echo "Directorio actual: $(pwd)"
-echo "Archivos:"
-ls -la
-echo ""
-echo "Contenido de config.json:"
-cat config.json
-echo ""
 echo "Configuración nginx:"
 cat /etc/nginx/conf.d/default.conf
 
 nginx -t
-echo "✅ Kiwi IRC en: http://[TU_IP]:8080"
+
+echo "✅ Kiwi IRC sirviéndose desde ${WEB_ROOT} en http://[TU_IP]:8080"
 
 exec nginx -g "daemon off;"
