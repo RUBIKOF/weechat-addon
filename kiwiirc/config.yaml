@@ -1,17 +1,38 @@
 name: Kiwi IRC Web Client
-version: "20.05.24.1"
+version: "20.05.24.5"
 slug: kiwiirc_webclient
 description: "Official Kiwi IRC web client for ZNC (aarch64)"
 arch:
-  - aarch64  # ← SOLO aarch64
+  - aarch64
 url: "https://github.com/RUBIKOF/weechat-addon"
 webui: "http://[HOST]:[PORT:8080]"
 panel_icon: mdi:chat-processing
+
 ports:
   8080/tcp: 8080
+
 host_network: true
 startup: application
 boot: manual
 init: false
+
 map:
-  - config:rw
+  - config:rw   # para poder usar /config/kiwiirc/config.json si quieres
+
+# 👇 Opciones editables desde la UI de Home Assistant
+options:
+  config_json: |
+    {
+      "networks": [
+        {
+          "name": "Manual",
+          "host": "",
+          "port": 6667,
+          "tls": false,
+          "channels": []
+        }
+      ]
+    }
+
+schema:
+  config_json: str
