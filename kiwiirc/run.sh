@@ -16,19 +16,22 @@ else
     echo "✓ index.html encontrado en ${WEB_ROOT}"
 fi
 
-# 2. Asegurar carpeta static (algunos builds buscan /static/config.json)
+# 2. Asegurar carpeta static (por si acaso)
 mkdir -p "${WEB_ROOT}/static"
 
 # 3. Definir un config.json MÍNIMO válido
-#    Por ahora es un JSON vacío; luego lo cambiamos por uno apuntando a tu ZNC
 CONFIG_JSON='{}'
 
-# (Opcional) escribirlo también en el filesystem, por si alguna vez decides servirlo como archivo
+# Escribirlo también en disco (no obligatorio, pero útil)
 echo "${CONFIG_JSON}" > "${WEB_ROOT}/config.json"
 echo "${CONFIG_JSON}" > "${WEB_ROOT}/static/config.json"
 echo "✓ config.json escrito en ${WEB_ROOT} y ${WEB_ROOT}/static"
 
-# 4. Configurar nginx
+# 4. Redirigir logs de nginx a stdout/stderr (para ver peticiones en los logs del add-on)
+ln -sf /dev/stdout /var/log/nginx/access.log
+ln -sf /dev/stderr /var/log/nginx/error.log
+
+# 5. Configurar nginx
 cat > /etc/nginx/conf.d/default.conf << EOF
 server {
     listen 8080;
@@ -36,21 +39,15 @@ server {
     root ${WEB_ROOT};
     index index.html;
 
-    # Rutas normales: app SPA
+    # CUALQUIER ruta que termine en config.json → siempre devolvemos JSON válido
+    location ~* config\.json\$ {
+        default_type application/json;
+        return 200 '${CONFIG_JSON}';
+    }
+
+    # Rutas normales de la SPA
     location / {
         try_files \$uri \$uri/ /index.html;
-    }
-
-    # Kiwi suele pedir /config.json
-    location = /config.json {
-        default_type application/json;
-        return 200 '${CONFIG_JSON}';
-    }
-
-    # Algunas builds usan /static/config.json
-    location = /static/config.json {
-        default_type application/json;
-        return 200 '${CONFIG_JSON}';
     }
 }
 EOF
