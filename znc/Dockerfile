@@ -1,24 +1,26 @@
 # Dockerfile para ZNC con módulos completos (incluyendo clientaway)
+# Adaptado a la imagen base de Home Assistant (Alpine)
 
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
-ENV DEBIAN_FRONTEND=noninteractive
 ENV ZNC_VERSION=1.9.1
 
-# 1. Paquetes necesarios para compilar y ejecutar ZNC
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# 1. Paquetes necesarios para compilar y ejecutar ZNC (en Alpine)
+RUN apk add --no-cache \
         ca-certificates \
         curl \
-        build-essential \
+        build-base \
         cmake \
-        pkg-config \
-        libssl-dev \
-        libicu-dev \
-        libperl-dev \
-        python3 && \
-    rm -rf /var/lib/apt/lists/*
+        pkgconfig \
+        openssl-dev \
+        icu-dev \
+        perl-dev \
+        python3 \
+        autoconf \
+        automake \
+        libtool && \
+    update-ca-certificates
 
 # 2. Descargar y compilar ZNC desde el código fuente
 RUN mkdir -p /tmp/znc-build && \
