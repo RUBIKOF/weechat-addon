@@ -1,19 +1,17 @@
 ARG BUILD_FROM
+FROM ${BUILD_FROM}
 
-FROM debian:stable-slim
+# El base de Home Assistant ya es Alpine, así que usamos apk
+RUN apk add --no-cache \
+    znc \
+    ca-certificates \
+    curl && \
+    update-ca-certificates
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        znc \
-        ca-certificates \
-        net-tools \
-        curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-    
-EXPOSE 6667 8888
+# Carpeta de datos (mapeada a /config/znc por el add-on)
+RUN mkdir -p /config/znc
 
 COPY run.sh /usr/bin/run.sh
 RUN chmod +x /usr/bin/run.sh
 
-CMD [ "/usr/bin/run.sh" ]
+CMD ["/usr/bin/run.sh"]
