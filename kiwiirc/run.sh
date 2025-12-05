@@ -22,12 +22,12 @@ mkdir -p "${WEB_ROOT}/static"
 # 3. Definir un config.json MÍNIMO válido
 CONFIG_JSON='{}'
 
-# Escribirlo también en disco (no obligatorio, pero útil)
+# Escribirlo también en disco (no es obligatorio, pero no estorba)
 echo "${CONFIG_JSON}" > "${WEB_ROOT}/config.json"
 echo "${CONFIG_JSON}" > "${WEB_ROOT}/static/config.json"
 echo "✓ config.json escrito en ${WEB_ROOT} y ${WEB_ROOT}/static"
 
-# 4. Redirigir logs de nginx a stdout/stderr (para ver peticiones en los logs del add-on)
+# 4. Redirigir logs de nginx a stdout/stderr
 ln -sf /dev/stdout /var/log/nginx/access.log
 ln -sf /dev/stderr /var/log/nginx/error.log
 
@@ -39,14 +39,14 @@ server {
     root ${WEB_ROOT};
     index index.html;
 
-    # CUALQUIER ruta que termine en config.json → siempre devolvemos JSON válido
-    location ~* config\.json\$ {
-        default_type application/json;
-        return 200 '${CONFIG_JSON}';
-    }
-
     # Rutas normales de la SPA
     location / {
+        # Si la URL contiene "config" en el path → devolvemos siempre JSON
+        if (\$uri ~* "config") {
+            default_type application/json;
+            return 200 '${CONFIG_JSON}';
+        }
+
         try_files \$uri \$uri/ /index.html;
     }
 }
